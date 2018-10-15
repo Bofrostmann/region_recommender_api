@@ -1,3 +1,7 @@
+/**   region_recommender_frontend - 30.09.2018
+ *    Created by Florian Haimerl (florian.haimerl@tum.de)
+ */
+
 const mysql = require('mysql');
 
 module.exports = class {
@@ -28,11 +32,11 @@ module.exports = class {
     };
 
     getFeatures() {
-        return this.query("SELECT F.key, F.label, F.is_negative FROM features F");
+        return this.query("SELECT F.key, F.label FROM features F");
     };
 
 
-    getRecommendedRegions(features, regions) {
+    getInterestingRegions(features, regions) {
         let feature_condition_string = '',
             feature_tables_string = '',
             feature_select_string = '',
@@ -45,10 +49,11 @@ module.exports = class {
                     ' AND f' + i + '.key = ' + this.con.escape(feature.key) +
                     ' AND f' + i + '.id = ' + f2r + '.feature_id' +
                     ' AND ' + f2r + '.quality_spring > 0';
-                feature_select_string = feature_select_string + ', ' + f2r + '.quality_spring' +
-                    ', ' + f2r + '.quality_summer' +
-                    ', ' + f2r + '.quality_autumn' +
-                    ', ' + f2r + '.quality_winter';
+                feature_select_string = feature_select_string +
+                    ', ' + f2r + '.quality_spring AS ' + this.con.escape(feature.key + '_spring') +
+                    ', ' + f2r + '.quality_summer AS ' + this.con.escape(feature.key + '_summer') +
+                    ', ' + f2r + '.quality_autumn AS ' + this.con.escape(feature.key + '_autumn') +
+                    ', ' + f2r + '.quality_winter AS ' + this.con.escape(feature.key + '_winter');
             }
         });
 
