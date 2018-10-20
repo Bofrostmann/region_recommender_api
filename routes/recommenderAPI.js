@@ -27,8 +27,23 @@ router.get('/features', (req, res, next) => {
 });
 
 
-router.post('/recommendations', (req, res, next) => {
+router.get('/regions', (req, res, next) => {
     const db = new Connection();
+    db.getRegions().then(result => {
+            const feature_object = {};
+            Object.values(result).forEach(region => {
+                feature_object[region.unique_name] = region;
+            });
+            res.json(feature_object);
+        },
+        error => {
+            console.log("error!", error);
+        });
+    db.close();
+});
+
+
+router.post('/recommendations', (req, res, next) => {
     Recommender.getRegionsFromDB(req.body.features, req.body.regions).then(result => {
         const recommender = new SimpleRecommender(result, req.body.budget, req.body.days, req.body.start);
         recommender.applyRecommender(req.body.features);
@@ -43,5 +58,52 @@ router.post('/recommendations', (req, res, next) => {
         res.json(return_array);
     });
 });
+router.post('/genericSingleUpdate', (req, res, next) => {
+    const db = new Connection();
+    switch (req.body.key) {
+        case 'feature':
+            db.updateFeature(req.body.data.feature_key, req.body.data.label, req.body.data.id).then(success => {
+                res.json({success: true});
+            }, err => {
+                res.json({success: false});
+                console.log('error in genericSingleUpdate', req.body, err);
+            });
+            break;
+        default:
+    }
+});
+
+
+router.post('/genericSingleCreate', (req, res, next) => {
+    const db = new Connection();
+    switch (req.body.key) {
+        case 'feature':
+            db.insertFeature(req.body.data.feature_key, req.body.data.label).then(success => {
+                res.json({success: true});
+            }, err => {
+                res.json({success: false});
+                console.log('error in genericSingleUpdate', req.body, err);
+            });
+            break;
+        default:
+    }
+});
+
+
+router.post('/genericSingleDelete', (req, res, next) => {
+    const db = new Connection();
+    switch (req.body.key) {
+        case 'feature':
+            db.deleteFeature(req.body.data.id).then(success => {
+                res.json({success: true});
+            }, err => {
+                res.json({success: false});
+                console.log('error in genericSingleUpdate', req.body, err);
+            });
+            break;
+        default:
+    }
+});
+
 
 module.exports = router;

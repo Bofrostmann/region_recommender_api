@@ -32,9 +32,25 @@ module.exports = class {
     };
 
     getFeatures() {
-        return this.query("SELECT F.key, F.label FROM features F");
+        return this.query("SELECT F.key, F.label, F.id FROM features F");
     };
 
+    updateFeature(key, label, id) {
+        return this.query("UPDATE features F SET F.key = ?, F.label = ? " +
+            "WHERE F.id = ?", [key, label, id])
+    }
+
+    insertFeature(key, label) {
+        return this.query("INSERT INTO features SET features.key = ?, features.label = ? ", [key, label]);
+    }
+
+    deleteFeature(id) {
+        return this.query("DELETE FROM features WHERE id = ? ", [id]);
+    }
+
+    getRegions() {
+        return this.query("SELECT R.* FROM Regions R");
+    };
 
     getInterestingRegions(features, regions) {
         let feature_condition_string = '',
