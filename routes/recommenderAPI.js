@@ -42,6 +42,18 @@ router.get('/regions', (req, res, next) => {
     db.close();
 });
 
+router.post('/featuresOfRegion', (req, res, next) => {
+    const db = new Connection();
+    console.log(req.body);
+    db.getFeaturesOfRegion(req.body.region_id).then(result => {
+            res.json(result);
+        },
+        error => {
+            console.log("error!", error);
+        });
+    db.close();
+});
+
 
 router.post('/recommendations', (req, res, next) => {
     Recommender.getRegionsFromDB(req.body.features, req.body.regions).then(result => {
@@ -69,7 +81,17 @@ router.post('/genericSingleUpdate', (req, res, next) => {
                 console.log('error in genericSingleUpdate', req.body, err);
             });
             break;
+        case 'region':
+            db.updateRegion(req.body.data).then(success => {
+                res.json({success: true});
+            }, err => {
+                console.log('error in genericSingleUpdate', req.body, err);
+            });
+
+            break;
         default:
+            console.log('error in genericSingleUpdate: Invalid feature_key', req.body.key);
+            res.json({success: false});
     }
 });
 
@@ -85,7 +107,17 @@ router.post('/genericSingleCreate', (req, res, next) => {
                 console.log('error in genericSingleUpdate', req.body, err);
             });
             break;
+        case 'region':
+            db.createRegionWithFeatureQualities(req.body.data).then(success => {
+                res.json({success: true});
+            }, err => {
+                console.log('error in genericSingleCreate', req.body, err);
+                res.json({success: false});
+            });
+            break;
         default:
+            console.log('error in genericSingleCreate: Invalid feature_key', req.body.key);
+            res.json({success: false});
     }
 });
 
@@ -98,10 +130,20 @@ router.post('/genericSingleDelete', (req, res, next) => {
                 res.json({success: true});
             }, err => {
                 res.json({success: false});
-                console.log('error in genericSingleUpdate', req.body, err);
+                console.log('error in genericSingleDelete', req.body, err);
+            });
+            break;
+        case 'region':
+            db.deleteRegionWithFeatureQualities(req.body.data.id).then(success => {
+                res.json({success: true});
+            }, err => {
+                res.json({success: false});
+                console.log('error in genericSingleDelete', req.body, err);
             });
             break;
         default:
+            console.log('error in genericSingleDelete: Invalid feature_key', req.body.key);
+            res.json({success: false});
     }
 });
 
