@@ -6,7 +6,8 @@
 
 const Recommender = require('./Recommender');
 const CosineSimilarity = require('compute-cosine-similarity');
-
+const SkyscannerAPI = require('../database/SkyscannerAPI');
+const CountriesAPI = require('../database/CountriesAPI');
 
 module.exports = class extends Recommender {
     constructor(regions, budget, days, start) {
