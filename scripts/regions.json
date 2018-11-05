@@ -1,0 +1,399 @@
+{  "is_recommender_region": false,
+  "maxZoomLevel": -1,
+  "name": "no_key",
+  "subregions": [
+    {
+      "name" : "amer_no",
+      "is_recommender_region": false,
+      "maxZoomLevel" : 1,
+      "subregions": [
+        {
+          "name" : "canada",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 2,
+          "subregions": [
+            {"u_name": "CND_NO", "name" : "Kanada Norden", "is_recommender_region": true},
+            {"u_name": "CND_BC", "name" : "Kanada ", "is_recommender_region": true},
+            {"u_name": "CND_PR", "name" : "Kanada ", "is_recommender_region": true},
+            {"u_name": "CND_ON", "name" : "Kanada ", "is_recommender_region": true},
+            {"u_name": "CND_QU", "name" : "Kanada ", "is_recommender_region": true},
+            {"u_name": "CND_AT", "name" : "Kanada ", "is_recommender_region": true}]
+        },
+        {"u_name": "GRL", "name" : "Groenland ", "is_recommender_region": true},
+        {
+          "name" : "usa",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 2,
+          "subregions": [
+            {"u_name": "USA_AL", "name" : "USA ", "is_recommender_region": true},
+            {"u_name": "USA_PN", "name" : "USA ", "is_recommender_region": true},
+            {"u_name": "USA_CA", "name" : "USA ", "is_recommender_region": true},
+            {"u_name": "USA_SW", "name" : "USA ", "is_recommender_region": true},
+            {"u_name": "USA_RM", "name" : "USA ", "is_recommender_region": true},
+            {"u_name": "USA_GP", "name" : "USA ", "is_recommender_region": true},
+            {"u_name": "USA_TX", "name" : "USA ", "is_recommender_region": true},
+            {"u_name": "USA_MW", "name" : "USA ", "is_recommender_region": true},
+            {"u_name": "USA_SO", "name" : "USA ", "is_recommender_region": true},
+            {"u_name": "USA_FL", "name" : "USA ", "is_recommender_region": true},
+            {"u_name": "USA_MA", "name" : "USA ", "is_recommender_region": true},
+            {"u_name": "USA_NE", "name" : "USA ", "is_recommender_region": true},
+            {"u_name": "USA_HA", "name" : "USA ", "is_recommender_region": true}
+          ]
+        },
+        {
+          "name" : "mexico",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 2,
+          "subregions": [
+            {"u_name": "MEX_BC", "name" : "Mexiko ", "is_recommender_region": true},
+            {"u_name": "MEX_NO", "name" : "Mexiko ", "is_recommender_region": true},
+            {"u_name": "MEX_BA", "name" : "Mexiko ", "is_recommender_region": true},
+            {"u_name": "MEX_PC", "name" : "Mexiko ", "is_recommender_region": true},
+            {"u_name": "MEX_YU", "name" : "Mexiko ", "is_recommender_region": true}
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "amer_ce_car",
+      "is_recommender_region": false,
+      "maxZoomLevel" : 3,
+      "subregions": [
+        {
+          "name" : "amer_ce",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 4,
+          "subregions": [
+            {"u_name": "GTM", "name" : "Guatemala und Belize", "is_recommender_region": true},
+            {"u_name": "HND", "name" : "Honduras und El Salvador", "is_recommender_region": true},
+            {"u_name": "NIC", "name" : "Nicaragua", "is_recommender_region": true},
+            {"u_name": "CRI", "name" : "Costa Rica", "is_recommender_region": true},
+            {"u_name": "PAN", "name" : "Panama", "is_recommender_region": true}
+          ]
+        },
+        {
+          "name" : "amer_car",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 4,
+          "subregions": [
+            {"u_name": "BHS", "name" : "", "is_recommender_region": true},
+            {"u_name": "CUB", "name" : "", "is_recommender_region": true},
+            {"u_name": "HTI", "name" : "", "is_recommender_region": true},
+            {"u_name": "AIA", "name" : "", "is_recommender_region": true}
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "amer_so",
+      "is_recommender_region": false,
+      "maxZoomLevel" : 2,
+      "subregions": [
+        {"u_name": "VEN", "name" : "", "is_recommender_region": true},
+        {"u_name": "GUY", "name" : "", "is_recommender_region": true},
+        {"u_name": "COL", "name" : "", "is_recommender_region": true},
+        {"u_name": "ECU", "name" : "", "is_recommender_region": true},
+        {"u_name": "PER", "name" : "", "is_recommender_region": true},
+        {"u_name": "BOL", "name" : "", "is_recommender_region": true},
+        {
+          "name" : "bra",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 3,
+          "subregions": [
+            {"u_name": "BRA_NO", "name" : "", "is_recommender_region": true},
+            {"u_name": "BRA_NE", "name" : "", "is_recommender_region": true},
+            {"u_name": "BRA_CW", "name" : "", "is_recommender_region": true},
+            {"u_name": "BRA_SE", "name" : "", "is_recommender_region": true},
+            {"u_name": "BRA_SO", "name" : "", "is_recommender_region": true}
+          ]
+        },
+        {"u_name": "CHL_NC", "name" : "", "is_recommender_region": true},
+        {"u_name": "PRY", "name" : "", "is_recommender_region": true},
+        {"u_name": "URY", "name" : "", "is_recommender_region": true},
+        {
+          "name" : "arg",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 3,
+          "subregions": [
+            {"u_name": "ARG_NO", "name" : "", "is_recommender_region": true},
+            {"u_name": "ARG_CE", "name" : "", "is_recommender_region": true}
+          ]
+        },
+        {"u_name": "ARG_SO", "name" : "", "is_recommender_region": true},
+        {"u_name": "ATA", "name" : "", "is_recommender_region": true}
+      ]
+    },
+    {
+      "name" : "africa",
+      "is_recommender_region": false,
+      "maxZoomLevel" : 2,
+      "subregions": [
+        {
+          "name" : "magreb",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 3,
+          "subregions": [
+            {"u_name": "MAR", "name" : "", "is_recommender_region": true},
+            {"u_name": "DZA", "name" : "", "is_recommender_region": true},
+            {"u_name": "TUN", "name" : "", "is_recommender_region": true},
+            {"u_name": "LBY", "name" : "", "is_recommender_region": true}
+          ]
+        },
+        {"u_name": "EGY", "name" : "", "is_recommender_region": true},
+        {"u_name": "MRT", "name" : "", "is_recommender_region": true},
+        {"u_name": "TCD", "name" : "", "is_recommender_region": true},
+        {"u_name": "SEN", "name" : "", "is_recommender_region": true},
+        {"u_name": "CAF", "name" : "", "is_recommender_region": true},
+        {
+          "name" : "africa_ea",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 3,
+          "subregions": [
+            {"u_name": "ERI", "name" : "", "is_recommender_region": true},
+            {"u_name": "SOM", "name" : "", "is_recommender_region": true},
+            {"u_name": "KEN", "name" : "", "is_recommender_region": true},
+            {"u_name": "TZA", "name" : "", "is_recommender_region": true},
+            {"u_name": "UGA", "name" : "", "is_recommender_region": true}
+          ]
+        },
+        {
+          "name" : "africa_so",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 3,
+          "subregions": [
+            {"u_name": "COM", "name" : "", "is_recommender_region": true},
+            {"u_name": "ZAF", "name" : "", "is_recommender_region": true},
+            {"u_name": "MDG", "name" : "", "is_recommender_region": true},
+            {"u_name": "NAM", "name" : "", "is_recommender_region": true},
+            {"u_name": "BWA", "name" : "", "is_recommender_region": true},
+            {"u_name": "ZMB", "name" : "", "is_recommender_region": true},
+            {"u_name": "MOZ", "name" : "", "is_recommender_region": true}
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "asia",
+      "is_recommender_region": false,
+      "maxZoomLevel" : 1,
+      "subregions": [
+        {
+          "name" : "mid_ea",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 3,
+          "subregions": [
+            {"u_name": "ISR", "name" : "", "is_recommender_region": true},
+            {"u_name": "JOR", "name" : "", "is_recommender_region": true},
+            {"u_name": "LBN", "name" : "", "is_recommender_region": true},
+            {"u_name": "IRQ", "name" : "", "is_recommender_region": true},
+            {"u_name": "IRN", "name" : "", "is_recommender_region": true},
+            {"u_name": "ARE", "name" : "", "is_recommender_region": true},
+            {"u_name": "SAU", "name" : "", "is_recommender_region": true},
+            {"u_name": "OMN", "name" : "", "is_recommender_region": true},
+            {"u_name": "QAT", "name" : "", "is_recommender_region": true}
+          ]
+        },
+        {
+          "name" : "rus_cau",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 2,
+          "subregions": [
+            {"u_name": "ARM", "name" : "", "is_recommender_region": true},
+            {"u_name": "RUS_WE", "name" : "", "is_recommender_region": true},
+            {"u_name": "RUS_SO", "name" : "", "is_recommender_region": true},
+            {"u_name": "RUS_CE", "name" : "", "is_recommender_region": true},
+            {"u_name": "RUS_EA", "name" : "", "is_recommender_region": true}
+          ]
+        },
+        {
+          "name" : "asia_so",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 3,
+          "subregions": [
+            {"u_name": "PAK", "name" : "", "is_recommender_region": true},
+            {"u_name": "NPL", "name" : "", "is_recommender_region": true},
+            {"u_name": "BTN", "name" : "", "is_recommender_region": true},
+            {
+              "name" : "india",
+              "is_recommender_region": false,
+              "maxZoomLevel" : 3,
+              "subregions": [
+                {"u_name": "IND_NO", "name" : "", "is_recommender_region": true},
+                {"u_name": "IND_NE", "name" : "", "is_recommender_region": true},
+                {"u_name": "IND_EA", "name" : "", "is_recommender_region": true},
+                {"u_name": "IND_WE", "name" : "", "is_recommender_region": true},
+                {"u_name": "IND_SO", "name" : "", "is_recommender_region": true}
+              ]
+            },
+            {"u_name": "LKA", "name" : "", "is_recommender_region": true},
+            {"u_name": "MDV", "name" : "", "is_recommender_region": true}
+          ]
+        },
+        {
+          "name" : "asia_se",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 3,
+          "subregions": [
+            {"u_name": "MMR", "name" : "", "is_recommender_region": true},
+            {"u_name": "THA_NO", "name" : "", "is_recommender_region": true},
+            {"u_name": "THA_SO", "name" : "", "is_recommender_region": true},
+            {"u_name": "VNM", "name" : "", "is_recommender_region": true},
+            {"u_name": "MYS_WE", "name" : "", "is_recommender_region": true},
+            {"u_name": "MYS_BO", "name" : "", "is_recommender_region": true},
+            {
+              "name" : "indonesia",
+              "is_recommender_region": false,
+              "maxZoomLevel" : 3,
+              "subregions": [
+                {"u_name": "IDN_SU", "name" : "", "is_recommender_region": true},
+                {"u_name": "IDN_BA", "name" : "", "is_recommender_region": true},
+                {"u_name": "IDN_RE", "name" : "", "is_recommender_region": true}
+              ]
+            },
+            {"u_name": "PHL", "name" : "", "is_recommender_region": true}
+          ]
+        },
+        {
+          "name" : "asia_ea",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 3,
+          "subregions": [
+            {
+              "name" : "china",
+              "is_recommender_region": false,
+              "maxZoomLevel" : 3,
+              "subregions": [
+                {"u_name": "CHN_NE", "name" : "", "is_recommender_region": true},
+                {"u_name": "CHN_NO", "name" : "", "is_recommender_region": true},
+                {"u_name": "CHN_NW", "name" : "", "is_recommender_region": true},
+                {"u_name": "CHN_SW", "name" : "", "is_recommender_region": true},
+                {"u_name": "CHN_SC", "name" : "", "is_recommender_region": true},
+                {"u_name": "CHN_SE", "name" : "", "is_recommender_region": true},
+                {"u_name": "CHN_EA", "name" : "", "is_recommender_region": true}
+              ]
+            },
+            {"u_name": "TWN", "name" : "", "is_recommender_region": true},
+            {"u_name": "JPN", "name" : "", "is_recommender_region": true},
+            {"u_name": "KOR", "name" : "", "is_recommender_region": true},
+            {"u_name": "PRK", "name" : "", "is_recommender_region": true},
+            {"u_name": "MNG", "name" : "", "is_recommender_region": true}
+          ]
+        },
+        {
+          "name" : "asia_ce",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 3,
+          "subregions": [
+            {"u_name": "UZB", "name" : "", "is_recommender_region": true},
+            {"u_name": "KGZ", "name" : "", "is_recommender_region": true},
+            {"u_name": "KAZ", "name" : "", "is_recommender_region": true},
+            {"u_name": "AFG", "name" : "", "is_recommender_region": true}
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "oceania",
+      "is_recommender_region": false,
+      "maxZoomLevel" : 2,
+      "subregions": [
+        {
+          "name" : "australia",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 3,
+          "subregions": [
+            {"u_name": "AUS_WE", "name" : "", "is_recommender_region": true},
+            {"u_name": "AUS_NE", "name" : "", "is_recommender_region": true},
+            {"u_name": "AUS_SO", "name" : "", "is_recommender_region": true}
+          ]
+        },
+        {"u_name": "NZL", "name" : "", "is_recommender_region": true},
+        {"u_name": "PNG", "name" : "", "is_recommender_region": true},
+        {
+          "name" : "pacific",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 3,
+          "subregions": [
+            {"u_name": "FSM", "name" : "", "is_recommender_region": true},
+            {"u_name": "SLB", "name" : "", "is_recommender_region": true},
+            {"u_name": "PYF", "name" : "", "is_recommender_region": true}
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "europe",
+      "is_recommender_region": false,
+      "maxZoomLevel" : 2,
+      "subregions": [
+        {
+          "name" : "eur_no",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 3,
+          "subregions": [
+            {"u_name": "NOR", "name" : "", "is_recommender_region": true},
+            {"u_name": "FIN", "name" : "", "is_recommender_region": true},
+            {"u_name": "SWE", "name" : "", "is_recommender_region": true},
+            {"u_name": "ISL", "name" : "", "is_recommender_region": true}
+          ]
+        },
+        {
+          "name" : "eur_mid",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 3,
+          "subregions": [
+            {"u_name": "DEU", "name" : "", "is_recommender_region": true},
+            {"u_name": "AUT", "name" : "", "is_recommender_region": true},
+            {"u_name": "NLD", "name" : "", "is_recommender_region": true},
+            {"u_name": "CHE", "name" : "", "is_recommender_region": true},
+            {"u_name": "FRA", "name" : "", "is_recommender_region": true},
+            {"u_name": "SVN", "name" : "", "is_recommender_region": true}
+          ]
+        },
+        {
+          "name" : "brit_is",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 3,
+          "subregions": [
+            {"u_name": "IRL", "name" : "", "is_recommender_region": true},
+            {"u_name": "GBR_SC", "name" : "", "is_recommender_region": true},
+            {"u_name": "GBR_EN", "name" : "", "is_recommender_region": true}
+          ]
+        },
+        {
+          "name" : "eur_ea",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 3,
+          "subregions": [
+            {"u_name": "CZE", "name" : "", "is_recommender_region": true},
+            {"u_name": "HUN", "name" : "", "is_recommender_region": true},
+            {"u_name": "EST", "name" : "", "is_recommender_region": true},
+            {"u_name": "POL", "name" : "", "is_recommender_region": true},
+            {"u_name": "BLR", "name" : "", "is_recommender_region": true},
+            {"u_name": "ROU", "name" : "", "is_recommender_region": true},
+            {"u_name": "SRB", "name" : "", "is_recommender_region": true},
+            {"u_name": "ALB", "name" : "", "is_recommender_region": true}
+          ]
+        },
+        {
+          "name" : "eur_so",
+          "is_recommender_region": false,
+          "maxZoomLevel" : 3,
+          "subregions": [
+            {"u_name": "FRA_CO", "name" : "", "is_recommender_region": true},
+            {"u_name": "ITA", "name" : "", "is_recommender_region": true},
+            {"u_name": "GRC_ML", "name" : "", "is_recommender_region": true},
+            {"u_name": "GRC_IS", "name" : "", "is_recommender_region": true},
+            {"u_name": "ESP_ML", "name" : "", "is_recommender_region": true},
+            {"u_name": "PRT", "name" : "", "is_recommender_region": true},
+            {"u_name": "PRT_IS", "name" : "", "is_recommender_region": true},
+            {"u_name": "ESP_CA", "name" : "", "is_recommender_region": true},
+            {"u_name": "ESP_BA", "name" : "", "is_recommender_region": true},
+            {"u_name": "TUR", "name" : "", "is_recommender_region": true},
+            {"u_name": "CYP", "name" : "", "is_recommender_region": true}
+          ]
+        }
+      ]
+    }
+  ]
+}

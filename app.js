@@ -16,7 +16,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 //TODO Store allowed origin in environment variable
 var allowCrossDomain = function(req, res, next) {
-    const allowedOrigins = ['http://localhost:3000', 'http://localhost:3006'],
+    const allowedOrigins = ['http://localhost:3000', 'http://localhost:3006', 'http://127.0.0.1:3000', 'http://127.0.0.1:3006'],
         origin = req.headers.origin;
     if(allowedOrigins.indexOf(origin) > -1){
         res.header('Access-Control-Allow-Origin', origin);

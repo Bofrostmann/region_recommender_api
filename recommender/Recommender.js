@@ -2,7 +2,7 @@
  *    Created by Florian Haimerl (florian.haimerl@tum.de)
  */
 
-const Connection = require('./../database/Connection');
+const Connection = require('../data/DataBase');
 const Region = require('./Region');
 
 module.exports = class {

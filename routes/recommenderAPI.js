@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const mysql = require('mysql');
-const Connection = require('./../database/Connection');
+const Database = require('../data/DataBase');
 const Recommender = require('./../recommender/Recommender');
-const LegacyRecommender = require('./../recommender/LegacyRecommender');
 const SimpleRecommender = require('../recommender/CosineRecommender');
+const Airports = require('../data/Airports');
+
+const createRegions = require('../scripts/CreateRegions');
+const updateParents = require('../scripts/UpdateParents');
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -12,7 +15,7 @@ router.get('/', function (req, res, next) {
 });
 
 router.get('/features', (req, res, next) => {
-    const db = new Connection();
+    const db = new Database();
     db.getFeatures().then(result => {
             const feature_object = {};
             Object.values(result).forEach(feature => {
@@ -28,7 +31,7 @@ router.get('/features', (req, res, next) => {
 
 
 router.get('/regions', (req, res, next) => {
-    const db = new Connection();
+    const db = new Database();
     db.getRegions().then(result => {
             const feature_object = {};
             Object.values(result).forEach(region => {
@@ -43,7 +46,7 @@ router.get('/regions', (req, res, next) => {
 });
 
 router.post('/featuresOfRegion', (req, res, next) => {
-    const db = new Connection();
+    const db = new Database();
     console.log(req.body);
     db.getFeaturesOfRegion(req.body.region_id).then(result => {
             res.json(result);
@@ -71,7 +74,7 @@ router.post('/recommendations', (req, res, next) => {
     });
 });
 router.post('/genericSingleUpdate', (req, res, next) => {
-    const db = new Connection();
+    const db = new Database();
     switch (req.body.key) {
         case 'feature':
             db.updateFeature(req.body.data.feature_key, req.body.data.label, req.body.data.id).then(success => {
@@ -95,9 +98,21 @@ router.post('/genericSingleUpdate', (req, res, next) => {
     }
 });
 
+router.post('/getAirportsOfRegion', (req, res, next) => {
+    const db = new Database();
+    db.getAirportsOfRegion(req.body.region_id).then(result => {
+            console.log('result', result);
+            res.json(result);
+        },
+        error => {
+            console.log("error!", error);
+        });
+    db.close();
+});
+
 
 router.post('/genericSingleCreate', (req, res, next) => {
-    const db = new Connection();
+    const db = new Database();
     switch (req.body.key) {
         case 'feature':
             db.insertFeature(req.body.data.feature_key, req.body.data.label).then(success => {
@@ -123,7 +138,7 @@ router.post('/genericSingleCreate', (req, res, next) => {
 
 
 router.post('/genericSingleDelete', (req, res, next) => {
-    const db = new Connection();
+    const db = new Database();
     switch (req.body.key) {
         case 'feature':
             db.deleteFeature(req.body.data.id).then(success => {
@@ -144,6 +159,24 @@ router.post('/genericSingleDelete', (req, res, next) => {
         default:
             console.log('error in genericSingleDelete: Invalid feature_key', req.body.key);
             res.json({success: false});
+    }
+});
+
+router.get('/runScript', (req, res, next) => {
+    res.header({"Content-Type": "text/html"});
+    switch (req.query.script) {
+        case 'create':
+            createRegions().then(string => {
+                res.write(string);
+                res.end();
+            });
+            break;
+        case 'updateParents':
+            updateParents().then(string => {
+                res.write(string);
+                res.end();
+            });
+            break;
     }
 });
 
