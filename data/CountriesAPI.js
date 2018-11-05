@@ -5,7 +5,6 @@ const axios = require('axios');
 
 module.exports = class CountriesAPI {
     constructor() {
-        super();
     }
 
     getCitiesOfCountryCodeList(code_list) {

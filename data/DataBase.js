@@ -137,13 +137,44 @@ module.exports = class {
         });
     }
 
+    deleteAirportsOfRegion(region_id) {
+        return this.query('DELETE FROM airports WHERE region_id = ?', [region_id]);
+    }
+
+
+    getAirportsOfRegion(region_id) {
+        return this.query('SELECT * FROM airports A WHERE A.region_id = ?', [region_id]);
+    }
+
+
+    insertAirportsForRegion(data, region_id) {
+        let airport_arrray = [];
+        for(let i = 0; i < data.number_of_airports; i++) {
+            airport_arrray.push([data['airport_name$' + i], data['airport_city$' + i], data['airport_iata_code$' + i], region_id]);
+        }
+        if (airport_arrray.length > 0) {
+            return this.query('INSERT INTO airports(name, city, iata_code, region_id) VALUES ?', [airport_arrray]);
+        }
+    }
+
+
     updateRegion(data) {
         return this.beginTransaction()
             .then(() => {
-                this.deleteFeatureQualitiesOfRegion(data.id)
+                this.deleteFeatureQualitiesOfRegion(data.id);
             })
             .then(() => {
-                return this.insertFeatureQualities(data, data.id)
+                return this.insertFeatureQualities(data, data.id);
+            })
+            .then(() => {
+                return this.deleteAirportsOfRegion(data.id);
+            })
+            .then(() => {
+                return this.insertAirportsForRegion(data, data.id);
+            })
+            .then(() => {
+                return this.query('UPDATE regions R SET R.unique_name = ?, R.name = ?, R.cost_per_day = ? ' +
+                    'WHERE R.id = ?', [data.unique_name, data.name, data.cost_per_day, data.id]);
             })
             .then(() => {
                 return this.commit("testing phase");

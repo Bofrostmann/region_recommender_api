@@ -16,26 +16,34 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `schema_migrations`
+-- Table structure for table `airports`
 --
 
-DROP TABLE IF EXISTS `schema_migrations`;
+DROP TABLE IF EXISTS `airports`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
  SET character_set_client = utf8mb4 ;
-CREATE TABLE `schema_migrations` (
-  `version` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  UNIQUE KEY `unique_schema_migrations` (`version`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+CREATE TABLE `airports` (
+  `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
+  `region_id` int(11) NOT NULL,
+  `name` varchar(45) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `city` varchar(45) NOT NULL,
+  `iata_code` varchar(3) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_region_id_idx` (`region_id`),
+  CONSTRAINT `fk_airport2region_id` FOREIGN KEY (`region_id`) REFERENCES `regions` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `schema_migrations`
+-- Dumping data for table `airports`
 --
 
-LOCK TABLES `schema_migrations` WRITE;
-/*!40000 ALTER TABLE `schema_migrations` DISABLE KEYS */;
-INSERT INTO `schema_migrations` VALUES ('20150602124724'),('20150602124935'),('20150824105832'),('20150824105838'),('20150824105846'),('20150824152210'),('20150824153319'),('20150824155011'),('20150824180719'),('20150824182404'),('20150824182447'),('20150825101555'),('20150825102521'),('20150825103055'),('20150825103211'),('20150825113836'),('20150829101556'),('20150829132417'),('20150831142438'),('20150831145741'),('20150831145939'),('20150831151144'),('20150903152251'),('20150903152402'),('20150910173351'),('20150910173650'),('20150910180937'),('20150910181222'),('20150911082017'),('20150914105117'),('20150914105835'),('20151008000325'),('20151008000558'),('20151008000814'),('20151010095914'),('20151010102704'),('20151012122923'),('20151012123617'),('20151012160206'),('20151013155126'),('20151013155424'),('20151013163952'),('20151013172935'),('20151014011217');
-/*!40000 ALTER TABLE `schema_migrations` ENABLE KEYS */;
+LOCK TABLES `airports` WRITE;
+/*!40000 ALTER TABLE `airports` DISABLE KEYS */;
+INSERT INTO `airports` VALUES (3,173,'name','2018-11-05 14:01:51','2018-11-05 14:01:51','city','iat'),(4,173,'Name','2018-11-05 14:01:51','2018-11-05 14:01:51','City','MUC'),(5,173,'SFO','2018-11-05 14:01:51','2018-11-05 14:01:51','sfo','SFO');
+/*!40000 ALTER TABLE `airports` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
