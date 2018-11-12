@@ -1,12 +1,19 @@
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 
-var index_router = require('./routes/index');
-var recommender_api_router = require('./routes/recommenderAPI');
+const index_router = require('./routes/index');
+const recommender_api_router = require('./routes/recommenderAPI');
 
-var app = express();
+const app = express();
+
+const dotenv = require('dotenv');
+
+dotenv.load();
+
+const authenticator = require('./authentication/authenticator')();
+app.use(authenticator.initialize());
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -15,10 +22,10 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 //TODO Store allowed origin in environment variable
-var allowCrossDomain = function(req, res, next) {
+const allowCrossDomain = function (req, res, next) {
     const allowedOrigins = ['http://localhost:3000', 'http://localhost:3006', 'http://127.0.0.1:3000', 'http://127.0.0.1:3006'],
         origin = req.headers.origin;
-    if(allowedOrigins.indexOf(origin) > -1){
+    if (allowedOrigins.indexOf(origin) > -1) {
         res.header('Access-Control-Allow-Origin', origin);
     }
 
@@ -38,7 +45,7 @@ app.use( allowCrossDomain );
 
 
 app.use('/', index_router);
-app.use('/recommenderAPI', recommender_api_router);
+recommender_api_router(app, authenticator);
 
 
 module.exports = app;
