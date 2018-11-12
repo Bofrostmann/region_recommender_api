@@ -7,10 +7,11 @@ const mysql = require('mysql');
 module.exports = class {
     constructor() {
         this.con = mysql.createConnection({
-            host: "localhost",
-            user: "root",
-            password: "password",
-            database: "sys"
+            host: process.env.DB_IP,
+            port: process.env.DB_PORT,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASSWORD,
+            database: "recommender"
         });
         this.con.connect(function (err) {
             if (err) throw err;
@@ -94,7 +95,7 @@ module.exports = class {
     }
 
     getRegions() {
-        return this.query("SELECT R.* FROM Regions R");
+        return this.query("SELECT R.* FROM regions R");
     };
 
     deleteFeatureQualitiesOfFeature(feature_id) {
@@ -149,7 +150,7 @@ module.exports = class {
 
     insertAirportsForRegion(data, region_id) {
         let airport_arrray = [];
-        for(let i = 0; i < data.number_of_airports; i++) {
+        for (let i = 0; i < data.number_of_airports; i++) {
             airport_arrray.push([data['airport_name$' + i], data['airport_city$' + i], data['airport_iata_code$' + i], region_id]);
         }
         if (airport_arrray.length > 0) {
@@ -173,20 +174,21 @@ module.exports = class {
                 return this.insertAirportsForRegion(data, data.id);
             })
             .then(() => {
-                return this.query('UPDATE regions R SET R.unique_name = ?, R.name = ?, R.cost_per_day = ? ' +
-                    'WHERE R.id = ?', [data.unique_name, data.name, data.cost_per_day, data.id]);
+                return this.query('UPDATE regions R SET R.unique_name = ?, R.name = ?, R.cost_per_day = ? , R.parent_id = ? ' +
+                    'WHERE R.id = ?', [data.unique_name, data.name, data.cost_per_day, data.parent_id, data.id]);
             })
             .then(() => {
                 return this.commit("testing phase");
             });
     };
 
-    createRegionWithFeatureQualities(data) {
+    createRegionWithForeignTables(data) {
         return this.beginTransaction().then(() => {
             return this.query('INSERT INTO regions SET ' +
                 'regions.unique_name = ?, ' +
                 'regions.name = ?, ' +
-                'regions.cost_per_day = ?', [data.unique_name, data.name, parseInt(data.cost_per_day)]).then(success => {
+                'regions.cost_per_day = ?, ' +
+                'regions.parent_id = ?', [data.unique_name, data.name, parseInt(data.cost_per_day), data.parent_id]).then(success => {
                 this.insertFeatureQualities(data, success.insertId).then(() => {
                     return this.commit();
                 }, err => {
@@ -196,11 +198,14 @@ module.exports = class {
         });
     }
 
-    deleteRegionWithFeatureQualities(region_id) {
+    deleteRegionWithForeignTables(region_id) {
         console.log("id", region_id);
         return this.beginTransaction()
             .then(() => {
                 return this.deleteFeatureQualitiesOfRegion(region_id)
+            })
+            .then(() => {
+                return this.deleteAirportsOfRegion(region_id);
             })
             .then(() => {
                 return this.query('DELETE FROM regions WHERE regions.id = ?', [region_id]);
