@@ -16,10 +16,7 @@ const params = {
 module.exports = function () {
     let strategy = new JwtStrategy(params, function (payload, done) {
         /*check version*/
-        console.log("vor check", payload.version);
         if (payload.version.toString() === process.env.API_SECRET_VERSION) {
-            console.log("nach check", process.env.API_SECRET_VERSION);
-
             return done(null, true);
         } else {
             return done(null, false);

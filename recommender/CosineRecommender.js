@@ -7,11 +7,13 @@
 const Recommender = require('./Recommender');
 const CosineSimilarity = require('compute-cosine-similarity');
 const SkyscannerAPI = require('../data/SkyscannerAPI');
-const CountriesAPI = require('../data/CountriesAPI');
+const Connection = require('../data/DataBase');
+
 
 module.exports = class extends Recommender {
-    constructor(regions, budget, days, start) {
-        super(regions, budget, days, start);
+    constructor(regions, budget, days, start, origin) {
+        super(regions, budget, days, start, origin);
+        this.remaining_api_calls = 10;
     }
 
     applyRecommender(user_features) {
@@ -29,21 +31,38 @@ module.exports = class extends Recommender {
         user_vector.push(100);
 
         this.regions.forEach(region => {
+
             region_vector = [];
             Object.values(user_features).forEach(feature => {
                 if (feature.value > 0) {
                     region_vector.push(region.getScoreForFeatureInSeason(feature.key, 'spring'));
                 }
             });
-            if (region.region.unique_name === "USA_TX" || region.region.unique_name === "USA_HA") {
-                console.log(region);
-            }
             region_vector.push(region.getWeather());
             region.setScore(CosineSimilarity(user_vector, region_vector));
-
-            this.regions.sort(function (a, b) {
-                return parseFloat(b.getScore()) - parseFloat(a.getScore());
-            });
         });
+
+        this.regions.sort(function (a, b) {
+            return parseFloat(b.getScore()) - parseFloat(a.getScore());
+        });
+
+        let promises = [];
+        const skyscanner = new SkyscannerAPI();
+        this.regions.forEach(region => {
+            if (this.remaining_api_calls > 0 && region.getAirports().length) {
+                promises.push(skyscanner.getBestRouteForAirports(
+                    this.origin,
+                    region.getAirports().map(airport => (airport.iata_code)),
+                    this.start_date,
+                    this.end_date).then(trip => {
+                    if (typeof trip !== "undefined") {
+                        region.setCheapestTrip(trip);
+                    }
+                }));
+                this.remaining_api_calls--;
+            }
+        });
+
+        return Promise.all(promises);
     }
 };

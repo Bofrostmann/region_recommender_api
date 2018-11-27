@@ -11,6 +11,24 @@ module.exports = class {
         this._calcWeatherScore(travel_months);
         this.region.total_cost = this.region.cost_per_day * days;
         this.score = 0;
+        this.airports = [];
+        this.cheapest_trip = {price: 0, url:''};
+    }
+
+    setCheapestTrip(trip) {
+        this.cheapest_trip = trip;
+    }
+
+    getCheapestTrip() {
+        return this.cheapest_trip;
+    }
+
+    setAirports(airport_array) {
+        this.airports = airport_array;
+    }
+
+    getAirports() {
+        return this.airports;
     }
 
     setScore(val) {
@@ -47,5 +65,9 @@ module.exports = class {
 
     getName() {
         return this.region.name;
+    }
+
+    getId() {
+        return this.region.id;
     }
 };

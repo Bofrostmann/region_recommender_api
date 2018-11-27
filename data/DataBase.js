@@ -40,6 +40,7 @@ module.exports = class {
 
     commit() {
         return new Promise((resolve, reject) => {
+            console.log("commiting");
             this.con.commit(err => {
                 if (err)
                     return reject(err);
@@ -134,7 +135,7 @@ module.exports = class {
                     console.log(error, feature.key);
                 }
             });
-            this.query('INSERT INTO feature2region(feature_id, region_id, quality_spring, quality_summer, quality_autumn, quality_winter) VALUES ?', [feature_quality_array]);
+            return this.query('INSERT INTO feature2region(feature_id, region_id, quality_spring, quality_summer, quality_autumn, quality_winter) VALUES ?', [feature_quality_array]);
         });
     }
 
@@ -151,7 +152,11 @@ module.exports = class {
     insertAirportsForRegion(data, region_id) {
         let airport_arrray = [];
         for (let i = 0; i < data.number_of_airports; i++) {
-            airport_arrray.push([data['airport_name$' + i], data['airport_city$' + i], data['airport_iata_code$' + i], region_id]);
+            if ((typeof data['airport_name$' + i] !== 'undefined' && data['airport_name$' + i] !== '') ||
+                (typeof data['airport_city$' + i] !== 'undefined' && data['airport_city$' + i] !== '') ||
+                (typeof data['airport_iata_code$' + i] !== 'undefined' && data['airport_iata_code$' + i] !== '')) {
+                airport_arrray.push([data['airport_name$' + i], data['airport_city$' + i], data['airport_iata_code$' + i], region_id]);
+            }
         }
         if (airport_arrray.length > 0) {
             return this.query('INSERT INTO airports(name, city, iata_code, region_id) VALUES ?', [airport_arrray]);
@@ -174,8 +179,9 @@ module.exports = class {
                 return this.insertAirportsForRegion(data, data.id);
             })
             .then(() => {
-                return this.query('UPDATE regions R SET R.unique_name = ?, R.name = ?, R.cost_per_day = ? , R.parent_id = ? ' +
-                    'WHERE R.id = ?', [data.unique_name, data.name, data.cost_per_day, data.parent_id, data.id]);
+                return this.query('UPDATE regions R ' +
+                    'SET R.unique_name = ?, R.name = ?, R.cost_per_day = ? , R.parent_id = ?, R.max_zoom_level = ? ' +
+                    'WHERE R.id = ?', [data.unique_name, data.name, data.cost_per_day, data.parent_id, data.max_zoom_level, data.id]);
             })
             .then(() => {
                 return this.commit("testing phase");
@@ -188,13 +194,16 @@ module.exports = class {
                 'regions.unique_name = ?, ' +
                 'regions.name = ?, ' +
                 'regions.cost_per_day = ?, ' +
-                'regions.parent_id = ?', [data.unique_name, data.name, parseInt(data.cost_per_day), data.parent_id]).then(success => {
-                this.insertFeatureQualities(data, success.insertId).then(() => {
-                    return this.commit();
-                }, err => {
-                    return this.rollback("error in createRegionWithFeatureQualities. Rolling back. Error: \n" + err);
+                'regions.parent_id = ?, ' +
+                'regions.max_zoom_level = ?',
+                [data.unique_name, data.name, parseInt(data.cost_per_day), data.parent_id, data.max_zoom_level])
+                .then(success => {
+                    this.insertFeatureQualities(data, success.insertId).then(() => {
+                        return this.commit();
+                    }, err => {
+                        return this.rollback("error in createRegionWithFeatureQualities. Rolling back. Error: \n" + err);
+                    });
                 });
-            });
         });
     }
 
@@ -214,8 +223,7 @@ module.exports = class {
                 console.log("commiting");
                 return this.commit();
             });
-    }
-    ;
+    };
 
     getInterestingRegions(features, regions) {
         let feature_condition_string = '',
@@ -238,11 +246,114 @@ module.exports = class {
             }
         });
 
-        return this.query("SELECT r.name, r.cost_per_day, r.unique_name, wq.*" + feature_select_string +
+        return this.query("SELECT r.id, r.name, r.cost_per_day, r.unique_name, wq.*" + feature_select_string +
             " FROM regions r, weather_qualities wq" + feature_tables_string +
             " WHERE r.weather_quality_id = wq.id" +
             " AND r.unique_name IN (?)" + feature_condition_string, [regions]);
+    };
+
+    createOrUpdateFeedbackQuestions(data) {
+        return this.beginTransaction()
+            .then(() => {
+                return this.query("SELECT fq.*" +
+                    " FROM feedback_questions fq" +
+                    " WHERE fq.id IN (?)", [data.questions])
+            })
+            .then(questions_in_db => {
+                let promise_array = [];
+                console.log("q_in_db", questions_in_db);
+                questions_in_db.forEach(question => {
+                    promise_array.push(this.query('UPDATE feedback_questions FQ ' +
+                        'SET FQ.key = ?, FQ.text = ?, FQ.is_active = ? ' +
+                        'WHERE FQ.id = ?', [
+                        data['question_key_' + question.id],
+                        data['question_text_' + question.id],
+                        data['question_is_active_' + question.id], question.id]));
+                    data.questions.splice(data.questions.indexOf(question.id), 1);
+                });
+                // wait for all updates to finish
+                return Promise.all(promise_array);
+            })
+            .then(() => {
+                let insert_array = [];
+                data.questions.forEach(question => {
+                    insert_array.push([
+                        data['question_key_' + question],
+                        data['question_text_' + question],
+                        data['question_is_active_' + question]
+                    ]);
+                });
+                if (insert_array.length) {
+                    return this.query("INSERT INTO feedback_questions (`key`, `text`, is_active) VALUES ?", [insert_array]);
+                }
+            })
+            .then(() => {
+                return this.commit();
+            });
+    };
+
+    getFeedbackQuestions() {
+        return this.query("SELECT * FROM feedback_questions");
+    };
+
+    getActiveFeedbackQuestions() {
+        return this.query("SELECT * FROM feedback_questions WHERE is_active = 1");
+    };
+
+    createUser() {
+        return this.query("INSERT INTO users (id) VALUES (NULL);")
+            .then(result => {
+                return result.insertId;
+            });
     }
-}
-;
+
+    checkAndCreateUserId(id) {
+        let promise;
+        if (typeof id !== "undefined" && id !== "") {
+            promise = this.query("SELECT * FROM users WHERE id = ?", [id])
+                .then(users => {
+                    if (users.length) {
+                        console.log("user:", users);
+                        return users[0].id;
+                    } else {
+                        return this.createUser();
+                    }
+                });
+        } else {
+            promise = this.createUser();
+        }
+        return promise;
+    }
+
+    logQueryAndResults(query_data, recommended_region_data, user_id) {
+        const regions = JSON.stringify(query_data.regions),
+            start_array = query_data.start.split('/'),
+            start = new Date(start_array[2], parseInt(start_array[1], 10) - 1, start_array[0]);
+        return this.query("INSERT INTO queries SET " +
+            "queries.regions = ?, " +
+            "queries.origin = ?, " +
+            "queries.start_date = ?, " +
+            "queries.budget = ?, " +
+            "queries.days = ?, " +
+            "queries.user_id = ?",
+            [regions, query_data.origin, start, query_data.budget, query_data.days, user_id])
+            .then(result => {
+                let insert_array = [];
+                recommended_region_data.forEach(region => {
+                    insert_array.push([
+                        result.insertId,
+                        region.region.id,
+                        region.region.price,
+                        region.flight.price,
+                        region.flight.url,
+                        region.duration
+                    ]);
+                });
+                console.log("inserting");
+                return this.query("INSERT INTO results " +
+                    "(query_id, region_id, region_cost, flight_cost, flight_url, duration) VALUES ?", [insert_array]);
+            });
+    }
+
+};
 
