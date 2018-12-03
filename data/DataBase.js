@@ -21,8 +21,10 @@ module.exports = class {
     beginTransaction() {
         return new Promise((resolve, reject) => {
             this.con.beginTransaction(err => {
-                if (err)
+                if (err) {
+                    console.log("error in beginTransaction");
                     return reject(err);
+                }
                 resolve();
             });
         });
@@ -61,12 +63,12 @@ module.exports = class {
         return new Promise((resolve, reject) => {
             const start_time = new Date().getTime();
             this.con.query(sql, args, function (err, rows) {
-                console.log('query took ' + (new Date().getTime() - start_time) + 'ms');
                 if (err) {
                     console.log('this.sql', this.sql);
                     return reject(err);
                 } else {
                     if (typeof rows.affectedRows !== "undefined") {
+                        console.log('query took ' + (new Date().getTime() - start_time) + 'ms');
                         console.log('affected Rows: ' + rows.affectedRows);
                     }
                 }
@@ -167,7 +169,7 @@ module.exports = class {
     updateRegion(data) {
         return this.beginTransaction()
             .then(() => {
-                this.deleteFeatureQualitiesOfRegion(data.id);
+                return this.deleteFeatureQualitiesOfRegion(data.id);
             })
             .then(() => {
                 return this.insertFeatureQualities(data, data.id);
@@ -337,21 +339,50 @@ module.exports = class {
             "queries.days = ?, " +
             "queries.user_id = ?",
             [regions, query_data.origin, start, query_data.budget, query_data.days, user_id])
-            .then(result => {
-                let insert_array = [];
+            .then(result_query => {
+                let promises = [];
                 recommended_region_data.forEach(region => {
-                    insert_array.push([
-                        result.insertId,
-                        region.region.id,
-                        region.region.price,
-                        region.flight.price,
-                        region.flight.url,
-                        region.duration
-                    ]);
+                    promises.push(
+                        this.query("INSERT INTO results " +
+                            "(query_id, region_id, region_cost, flight_cost, flight_url, duration) " +
+                            "VALUES (?, ?, ?, ?, ?, ?)",
+                            [
+                                result_query.insertId,
+                                region.region.id,
+                                region.region.price,
+                                region.flight.price,
+                                region.flight.url,
+                                region.duration
+                            ])
+                            .then(result_results => {
+                                region.result_id = result_results.insertId;
+                                console.log("id", result_results.insertId);
+                            }));
                 });
-                console.log("inserting");
-                return this.query("INSERT INTO results " +
-                    "(query_id, region_id, region_cost, flight_cost, flight_url, duration) VALUES ?", [insert_array]);
+                return Promise.all(promises);
+            });
+    }
+
+    storeFeebackQuestionAnswers(data) {
+        return this.beginTransaction()
+            .then(() => {
+                return this.query("DELETE FROM result2feedback_question WHERE result_id = ?", [data.result_id])
+            })
+            .then(() => {
+                let insert_array = [];
+                Object.keys(data.answers).forEach(key => {
+                    const question_id = key.split("_")[1];
+                    insert_array.push([question_id, data.result_id, data.answers["question_" + question_id]])
+                });
+                if (insert_array.length) {
+                    return this.query("INSERT INTO result2feedback_question " +
+                        "(feedback_question_id, result_id, rating) " +
+                        "VALUES ?", [insert_array])
+                        .then();
+                }
+            })
+            .then(() => {
+                return this.commit();
             });
     }
 

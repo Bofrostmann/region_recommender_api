@@ -76,6 +76,7 @@ module.exports = function (app, authenticator) {
     });
 
     router.post('/recommendations', (req, res) => {
+        const number_of_recommendations = 4;
         let user_id = "";
         if (typeof req.body.session_key_container !== "undefined") {
             let session_token_container = jwt.decode(req.body.session_key_container, process.env.SESSION_SECRET);
@@ -115,9 +116,12 @@ module.exports = function (app, authenticator) {
                                         total: region.getTotalCost() + price
                                     }
                                 });
-                                return db.logQueryAndResults(req.body, recommendations_array, user_id_from_db).then( () => (recommendations_array));
+                                recommendations_array.splice(number_of_recommendations);
+                                return db.logQueryAndResults(req.body, recommendations_array, user_id_from_db)
+                                    .then(() => (recommendations_array));
                             })
                             .then(recommendations => {
+                                console.log("recs", recommendations);
                                 res.json({
                                     result: recommendations,
                                     token: jwt.encode({
@@ -240,6 +244,18 @@ module.exports = function (app, authenticator) {
                 console.log("error in getFeedbackQuestions!", error);
             });
         db.close();
+    });
+
+    router.post('/submitFeedbackQuestions', (req, res) => {
+        const db = new Database();
+        console.log("data", req.body.data);
+        db.storeFeebackQuestionAnswers(req.body.data).then(result => {
+                res.json({success: true});
+                db.close();
+            },
+            error => {
+                console.log("error in getFeedbackQuestions!", error);
+            });
     });
 
     router.get('/getActiveFeedbackQuestions', (req, res) => {
