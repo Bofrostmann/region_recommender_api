@@ -3,6 +3,8 @@
  */
 
 const mysql = require('mysql');
+const Constants = require('./Constants');
+
 
 module.exports = class {
     constructor() {
@@ -101,6 +103,15 @@ module.exports = class {
         return this.query("SELECT R.* FROM regions R");
     };
 
+    getAlgorithms() {
+        return this.query("SELECT A.* FROM algorithms A");
+    };
+
+    getVariablesOfAlgorithm(algorithm_id) {
+        return this.query("SELECT V2A.* FROM variables2algorithm V2A " +
+            "WHERE algorithm_id = ?", [algorithm_id]);
+    }
+
     deleteFeatureQualitiesOfFeature(feature_id) {
         return this.query("DELETE FROM feature2region WHERE feature_id = ?", [feature_id]);
     }
@@ -137,7 +148,9 @@ module.exports = class {
                     console.log(error, feature.key);
                 }
             });
-            return this.query('INSERT INTO feature2region(feature_id, region_id, quality_spring, quality_summer, quality_autumn, quality_winter) VALUES ?', [feature_quality_array]);
+            if (feature_quality_array.length) {
+                return this.query('INSERT INTO feature2region(feature_id, region_id, quality_spring, quality_summer, quality_autumn, quality_winter) VALUES ?', [feature_quality_array]);
+            }
         });
     }
 
@@ -145,9 +158,12 @@ module.exports = class {
         return this.query('DELETE FROM airports WHERE region_id = ?', [region_id]);
     }
 
-
     getAirportsOfRegion(region_id) {
         return this.query('SELECT * FROM airports A WHERE A.region_id = ?', [region_id]);
+    }
+
+    getTimeOfTravelQualitiesOfRegion(region_id) {
+        return this.query('SELECT * FROM time_of_travel_quality2region TTQ2R WHERE TTQ2R.region_id = ?', [region_id]);
     }
 
 
@@ -165,6 +181,18 @@ module.exports = class {
         }
     }
 
+    deleteTimeOfTravelQualitiesOfRegion(region_id) {
+        return this.query('DELETE FROM time_of_travel_quality2region WHERE region_id = ?', [region_id]);
+
+    }
+
+    insertTimeOfTravelQualitiesOfRegion(data, region_id) {
+        let values = {region_id};
+        Constants.MONTHS.forEach(month => {
+            values[month.key] = data["quality$" + month.key];
+        });
+        return this.query('INSERT INTO time_of_travel_quality2region SET ?', [values]);
+    }
 
     updateRegion(data) {
         return this.beginTransaction()
@@ -179,6 +207,12 @@ module.exports = class {
             })
             .then(() => {
                 return this.insertAirportsForRegion(data, data.id);
+            })
+            .then(() => {
+                return this.deleteTimeOfTravelQualitiesOfRegion(data.id);
+            })
+            .then(() => {
+                return this.insertTimeOfTravelQualitiesOfRegion(data, data.id);
             })
             .then(() => {
                 return this.query('UPDATE regions R ' +
@@ -200,17 +234,20 @@ module.exports = class {
                 'regions.max_zoom_level = ?',
                 [data.unique_name, data.name, parseInt(data.cost_per_day), data.parent_id, data.max_zoom_level])
                 .then(success => {
-                    this.insertFeatureQualities(data, success.insertId).then(() => {
-                        return this.commit();
-                    }, err => {
-                        return this.rollback("error in createRegionWithFeatureQualities. Rolling back. Error: \n" + err);
-                    });
+                    return this.insertFeatureQualities(data, success.insertId)
+                        .then(() => {
+                            return this.insertTimeOfTravelQualitiesOfRegion(data, success.insertId);
+                        })
+                        .then(() => {
+                            return this.commit();
+                        }, err => {
+                            return this.rollback("error in createRegionWithFeatureQualities. Rolling back. Error: \n" + err);
+                        });
                 });
         });
     }
 
     deleteRegionWithForeignTables(region_id) {
-        console.log("id", region_id);
         return this.beginTransaction()
             .then(() => {
                 return this.deleteFeatureQualitiesOfRegion(region_id)
@@ -219,12 +256,77 @@ module.exports = class {
                 return this.deleteAirportsOfRegion(region_id);
             })
             .then(() => {
+                return this.deleteTimeOfTravelQualitiesOfRegion(region_id);
+            })
+            .then(() => {
                 return this.query('DELETE FROM regions WHERE regions.id = ?', [region_id]);
             })
             .then(() => {
-                console.log("commiting");
                 return this.commit();
             });
+    };
+
+
+    createAlgorithmWithForeignTables(data) {
+        return this.beginTransaction()
+            .then(() => {
+                return this.query('INSERT INTO algorithms SET ' +
+                    'algorithms.key = ?, ' +
+                    'algorithms.name = ?',
+                    [data.key, data.name])
+                    .then(success => {
+                        return this.insertAlgorithmVariables(data, success.insertId)
+                    })
+                    .then(() => {
+                        return this.commit();
+                    });
+            });
+    };
+
+    updateAlgorithmWithForeignKeyTables(data) {
+        return this.beginTransaction()
+            .then(() => {
+                return this.query('UPDATE algorithms A ' +
+                    'SET A.`key` = ?, ' +
+                    'A.name = ? ' +
+                    'WHERE A.id = ?', [data.key, data.name, data.id]);
+            })
+            .then(() => {
+                return this.deleteAgorithmVariables(data.id);
+            })
+            .then(() => {
+                return this.insertAlgorithmVariables(data, data.id);
+            })
+            .then(() => {
+                return this.commit();
+            });
+    };
+
+    deleteAlgorithmWithForeignTables(algorithm_id) {
+        return this.beginTransaction()
+            .then(() => {
+                return this.deleteAgorithmVariables(algorithm_id);
+            })
+            .then(() => {
+                return this.query("DELETE FROM algorithms WHERE id = ?", [algorithm_id]);
+            })
+            .then(() => {
+                return this.commit();
+            });
+    }
+
+    insertAlgorithmVariables(data, algorithm_id) {
+        let values = [];
+        data.variables.forEach(variable_id => {
+            values.push([algorithm_id, data['variable_key$' + variable_id], data['variable_value$' + variable_id]]);
+        });
+        if (values.length) {
+            return this.query('INSERT INTO variables2algorithm (`algorithm_id`, `key`, `value`) VALUES ?', [values]);
+        }
+    };
+
+    deleteAgorithmVariables(algorithm_id) {
+        return this.query('DELETE FROM variables2algorithm WHERE algorithm_id = ?', [algorithm_id]);
     };
 
     getInterestingRegions(features, regions) {
@@ -248,11 +350,12 @@ module.exports = class {
             }
         });
 
-        return this.query("SELECT r.id, r.name, r.cost_per_day, r.unique_name, wq.*" + feature_select_string +
-            " FROM regions r, weather_qualities wq" + feature_tables_string +
-            " WHERE r.weather_quality_id = wq.id" +
+        return this.query("SELECT r.id, r.name, r.cost_per_day, r.unique_name, tq.*" + feature_select_string +
+            " FROM regions r, time_of_travel_quality2region tq" + feature_tables_string +
+            " WHERE r.id = tq.region_id" +
             " AND r.unique_name IN (?)" + feature_condition_string, [regions]);
-    };
+    }
+    ;
 
     createOrUpdateFeedbackQuestions(data) {
         return this.beginTransaction()
@@ -263,7 +366,6 @@ module.exports = class {
             })
             .then(questions_in_db => {
                 let promise_array = [];
-                console.log("q_in_db", questions_in_db);
                 questions_in_db.forEach(question => {
                     promise_array.push(this.query('UPDATE feedback_questions FQ ' +
                         'SET FQ.key = ?, FQ.text = ?, FQ.is_active = ? ' +
@@ -292,15 +394,18 @@ module.exports = class {
             .then(() => {
                 return this.commit();
             });
-    };
+    }
+    ;
 
     getFeedbackQuestions() {
         return this.query("SELECT * FROM feedback_questions");
-    };
+    }
+    ;
 
     getActiveFeedbackQuestions() {
         return this.query("SELECT * FROM feedback_questions WHERE is_active = 1");
-    };
+    }
+    ;
 
     createUser() {
         return this.query("INSERT INTO users (id) VALUES (NULL);")
@@ -315,7 +420,6 @@ module.exports = class {
             promise = this.query("SELECT * FROM users WHERE id = ?", [id])
                 .then(users => {
                     if (users.length) {
-                        console.log("user:", users);
                         return users[0].id;
                     } else {
                         return this.createUser();
@@ -356,7 +460,6 @@ module.exports = class {
                             ])
                             .then(result_results => {
                                 region.result_id = result_results.insertId;
-                                console.log("id", result_results.insertId);
                             }));
                 });
                 return Promise.all(promises);
@@ -386,5 +489,6 @@ module.exports = class {
             });
     }
 
-};
+}
+;
 

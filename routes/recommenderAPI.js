@@ -62,10 +62,35 @@ module.exports = function (app, authenticator) {
             });
         db.close();
     });
+    router.get('/algorithms', (req, res) => {
+        const db = new Database();
+        db.getAlgorithms().then(result => {
+                const algorithms_object = {};
+                Object.values(result).forEach(algorithm => {
+                    algorithms_object[algorithm.key] = algorithm;
+                });
+                res.json(algorithms_object);
+            },
+            error => {
+                console.log("error!", error);
+            });
+        db.close();
+    });
+
+    router.post('/getVariablesOfAlgorithm', authenticator.authenticate(), (req, res) => {
+        console.log("req", req);
+        const db = new Database();
+        db.getVariablesOfAlgorithm(req.body.algorithm_id).then(result => {
+                res.json(result);
+            },
+            error => {
+                console.log("error!", error);
+            });
+        db.close();
+    });
 
     router.post('/featuresOfRegion', authenticator.authenticate(), (req, res) => {
         const db = new Database();
-        console.log(req.body);
         db.getFeaturesOfRegion(req.body.region_id).then(result => {
                 res.json(result);
             },
@@ -109,7 +134,8 @@ module.exports = function (app, authenticator) {
                                         region: {
                                             name: region.getName(),
                                             price: region.getTotalCost(),
-                                            id: region.getId()
+                                            id: region.getId(),
+                                            key: region.getUniqueName()
                                         },
                                         flight: cheapest_trip,
                                         duration: parseInt(req.body.days),
@@ -165,17 +191,38 @@ module.exports = function (app, authenticator) {
                         console.log('error in genericSingleUpdate', req.body, err);
                     });
                 break;
+            case 'algorithm':
+                db.updateAlgorithmWithForeignKeyTables(req.body.data)
+                    .then(success => {
+                        res.json({success: true});
+                    }, err => {
+                        console.log('error in genericSingleUpdate', req.body, err);
+                    });
+                break;
             default:
                 console.log('error in genericSingleUpdate: Invalid feature_key', req.body.key);
                 res.json({success: false});
         }
     });
 
+
     router.post('/getAirportsOfRegion', authenticator.authenticate(), (req, res) => {
         const db = new Database();
         db.getAirportsOfRegion(req.body.region_id).then(result => {
                 console.log('result', result);
                 res.json(result);
+            },
+            error => {
+                console.log("error!", error);
+            });
+        db.close();
+    });
+
+
+    router.post('/getTimeOfTravelQualitiesOfRegion', authenticator.authenticate(), (req, res) => {
+        const db = new Database();
+        db.getTimeOfTravelQualitiesOfRegion(req.body.region_id).then(result => {
+                res.json(result[0]);
             },
             error => {
                 console.log("error!", error);
@@ -203,6 +250,14 @@ module.exports = function (app, authenticator) {
                     res.json({success: false});
                 });
                 break;
+            case 'algorithm':
+                db.createAlgorithmWithForeignTables(req.body.data).then(success => {
+                    res.json({success: true});
+                }, err => {
+                    console.log('error in genericSingleCreate', req.body, err);
+                    res.json({success: false});
+                });
+                break;
             default:
                 console.log('error in genericSingleCreate: Invalid feature_key', req.body.key);
                 res.json({success: false});
@@ -223,6 +278,14 @@ module.exports = function (app, authenticator) {
                 break;
             case 'region':
                 db.deleteRegionWithForeignTables(req.body.data.id).then(success => {
+                    res.json({success: true});
+                }, err => {
+                    res.json({success: false});
+                    console.log('error in genericSingleDelete', req.body, err);
+                });
+                break;
+            case 'algorithm':
+                db.deleteAlgorithmWithForeignTables(req.body.data.id).then(success => {
                     res.json({success: true});
                 }, err => {
                     res.json({success: false});

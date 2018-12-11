@@ -60,13 +60,12 @@ module.exports = class {
     }
 
     _calculateTravelMonths() {
-        const month_names = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'],
-            start_month = this.start_date.getMonth(),
+        const start_month = this.start_date.getMonth(),
             end_month = this.end_date.getMonth();
         let travel_months = [];
         // Get all months the user is going to travel in
         for (let i = start_month; i <= end_month; i++) {
-            travel_months.push(month_names[i]);
+            travel_months.push(MONTHS[i].key);
         }
         return travel_months;
     }
