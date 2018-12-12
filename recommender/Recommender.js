@@ -4,6 +4,7 @@
 
 const Connection = require('../data/DataBase');
 const Region = require('./Region');
+const Constants = require('../data/Constants');
 
 module.exports = class {
     constructor(regions, budget, days, start, origin) {
@@ -65,7 +66,7 @@ module.exports = class {
         let travel_months = [];
         // Get all months the user is going to travel in
         for (let i = start_month; i <= end_month; i++) {
-            travel_months.push(MONTHS[i].key);
+            travel_months.push(Constants.MONTHS[i].key);
         }
         return travel_months;
     }
