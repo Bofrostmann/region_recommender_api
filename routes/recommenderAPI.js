@@ -104,9 +104,13 @@ module.exports = function (app, authenticator) {
         const number_of_recommendations = 4;
         let user_id = "";
         if (typeof req.body.session_key_container !== "undefined") {
-            let session_token_container = jwt.decode(req.body.session_key_container, process.env.SESSION_SECRET);
-            if (session_token_container.version === process.env.SESSION_SECRET_VERSION) {
-                user_id = session_token_container.user_id;
+            try {
+                let session_token_container = jwt.decode(req.body.session_key_container, process.env.SESSION_SECRET);
+                if (session_token_container.version === process.env.SESSION_SECRET_VERSION) {
+                    user_id = session_token_container.user_id;
+                }
+            } catch (e) {
+                user_id = "";
             }
         }
         const db = new Database();
