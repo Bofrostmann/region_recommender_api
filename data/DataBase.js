@@ -543,15 +543,16 @@ module.exports = class {
                 recommended_region_data.forEach(region => {
                     promises.push(
                         this.query("INSERT INTO results " +
-                            "(query_id, region_id, region_cost, flight_cost, flight_url, duration) " +
-                            "VALUES (?, ?, ?, ?, ?, ?)",
+                            "(query_id, region_id, region_cost, flight_cost, flight_url, duration, algorithm_id) " +
+                            "VALUES (?, ?, ?, ?, ?, ?, ?)",
                             [
                                 result_query.insertId,
                                 region.region.id,
                                 region.region.price,
                                 region.flight.price,
                                 region.flight.url,
-                                region.duration
+                                region.duration,
+                                region.algorithm_id
                             ])
                             .then(result_results => {
                                 region.result_id = result_results.insertId;
