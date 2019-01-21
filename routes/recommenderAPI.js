@@ -173,7 +173,8 @@ module.exports = function (app, authenticator) {
                                         },
                                         flight: region.getCheapestTrip(),
                                         duration: parseInt(req.body.days),
-                                        total: region.getTotalCost() + region.getCheapestTrip().price
+                                        total: region.getTotalCost() + region.getCheapestTrip().price,
+                                        algorithm_id: recommender.getAlgorithmId()
                                     })
                                 }
 
