@@ -55,6 +55,10 @@ module.exports = class {
         return this.region.total_cost;
     }
 
+    setTotalCost(cost) {
+        this.region.total_cost = cost;
+    }
+
     getWeather() {
         return this.region.weather;
     }

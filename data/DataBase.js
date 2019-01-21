@@ -79,21 +79,25 @@ module.exports = class {
         });
     };
 
-    getFeatures() {
-        return this.query("SELECT F.key, F.label, F.id FROM features F");
+    getActivities() {
+        return this.query("SELECT F.key, F.label, F.id, F.is_active FROM features F");
     };
 
-    updateFeature(key, label, id) {
-        return this.query("UPDATE features F SET F.key = ?, F.label = ? " +
-            "WHERE F.id = ?", [key, label, id])
+    getActiveActivities() {
+        return this.query("SELECT F.key, F.label, F.id FROM features F WHERE F.is_active = 1");
     }
 
-    insertFeature(key, label) {
-        return this.query("INSERT INTO features SET features.key = ?, features.label = ? ", [key, label]);
+    updateActivity(key, label, is_active, id) {
+        return this.query("UPDATE features F SET F.key = ?, F.label = ?, F.is_active = ? " +
+            "WHERE F.id = ?", [key, label, is_active, id])
     }
 
-    deleteFeature(id) {
-        return this.deleteFeatureQualitiesOfFeature(id)
+    insertActivity(key, label, is_active) {
+        return this.query("INSERT INTO features SET features.key = ?, features.label = ?, features.is_active = ? ", [key, label, is_active]);
+    }
+
+    deleteActivity(id) {
+        return this.deleteActivityQualitiesOfActivity(id)
             .then(() => {
                 return this.query("DELETE FROM features WHERE id = ? ", [id]);
             });
@@ -112,44 +116,44 @@ module.exports = class {
             "WHERE algorithm_id = ?", [algorithm_id]);
     }
 
-    deleteFeatureQualitiesOfFeature(feature_id) {
-        return this.query("DELETE FROM feature2region WHERE feature_id = ?", [feature_id]);
+    deleteActivityQualitiesOfActivity(activity_id) {
+        return this.query("DELETE FROM feature2region WHERE feature_id = ?", [activity_id]);
     }
 
-    getFeaturesOfRegion(id) {
+    getActivitiesOfRegion(id) {
         return this.query("SELECT F.key, F2R.* FROM feature2region F2R, features F " +
             "WHERE F2R.region_id = ? " +
             "AND F.id = F2R.feature_id", [id]);
     };
 
-    deleteFeatureQualitiesOfRegion(region_id) {
+    deleteActivityQualitiesOfRegion(region_id) {
         return this.query("DELETE FROM feature2region WHERE region_id = ?", [region_id]);
     }
 
-    insertFeatureQualities(data, region_id) {
+    insertActivityQualities(data, region_id) {
         const seasons = ["spring", "summer", "autumn", "winter"];
         let error = '';
-        return this.getFeatures().then(result => {
-            let feature_qualities = {},
-                feature_quality_array = [];
-            result.forEach(feature => {
-                feature_qualities = {};
+        return this.getActivities().then(result => {
+            let activity_qualities = {},
+                activity_quality_array = [];
+            result.forEach(activity => {
+                activity_qualities = {};
                 seasons.forEach(season => {
-                    if (typeof data[feature.key + '$' + season] !== "undefined"
-                        && data[feature.key + '$' + season] !== '') {
-                        feature_qualities[season] = data[feature.key + '$' + season];
+                    if (typeof data[activity.key + '$' + season] !== "undefined"
+                        && data[activity.key + '$' + season] !== '') {
+                        activity_qualities[season] = data[activity.key + '$' + season];
                     }
                 });
-                /* A valid feature has either all 4 qualities set, or no quality at all*/
-                if (Object.values(feature_qualities).length === 4 && error === '') {
-                    feature_quality_array.push([feature.id, region_id, feature_qualities.spring, feature_qualities.summer, feature_qualities.autumn, feature_qualities.winter]);
-                } else if (Object.values(feature_qualities).length !== 0) {
-                    error = 'invalid feature data!';
-                    console.log(error, feature.key);
+                /* A valid activity has either all 4 qualities set, or no quality at all*/
+                if (Object.values(activity_qualities).length === 4 && error === '') {
+                    activity_quality_array.push([activity.id, region_id, activity_qualities.spring, activity_qualities.summer, activity_qualities.autumn, activity_qualities.winter]);
+                } else if (Object.values(activity_qualities).length !== 0) {
+                    error = 'invalid activity data!';
+                    console.log(error, activity.key);
                 }
             });
-            if (feature_quality_array.length) {
-                return this.query('INSERT INTO feature2region(feature_id, region_id, quality_spring, quality_summer, quality_autumn, quality_winter) VALUES ?', [feature_quality_array]);
+            if (activity_quality_array.length) {
+                return this.query('INSERT INTO feature2region(feature_id, region_id, quality_spring, quality_summer, quality_autumn, quality_winter) VALUES ?', [activity_quality_array]);
             }
         });
     }
@@ -169,15 +173,21 @@ module.exports = class {
 
     insertAirportsForRegion(data, region_id) {
         let airport_arrray = [];
-        for (let i = 0; i < data.number_of_airports; i++) {
+        data.airports.forEach(i => {
             if ((typeof data['airport_name$' + i] !== 'undefined' && data['airport_name$' + i] !== '') ||
                 (typeof data['airport_city$' + i] !== 'undefined' && data['airport_city$' + i] !== '') ||
+                (typeof data['airport_country$' + i] !== 'undefined' && data['airport_country$' + i] !== '') ||
                 (typeof data['airport_iata_code$' + i] !== 'undefined' && data['airport_iata_code$' + i] !== '')) {
-                airport_arrray.push([data['airport_name$' + i], data['airport_city$' + i], data['airport_iata_code$' + i], region_id]);
+                airport_arrray.push([
+                    data['airport_name$' + i],
+                    data['airport_city$' + i],
+                    data['airport_country$' + i],
+                    data['airport_iata_code$' + i],
+                    region_id]);
             }
-        }
+        });
         if (airport_arrray.length > 0) {
-            return this.query('INSERT INTO airports(name, city, iata_code, region_id) VALUES ?', [airport_arrray]);
+            return this.query('INSERT INTO airports(name, city, country, iata_code, region_id) VALUES ?', [airport_arrray]);
         }
     }
 
@@ -197,10 +207,10 @@ module.exports = class {
     updateRegion(data) {
         return this.beginTransaction()
             .then(() => {
-                return this.deleteFeatureQualitiesOfRegion(data.id);
+                return this.deleteActivityQualitiesOfRegion(data.id);
             })
             .then(() => {
-                return this.insertFeatureQualities(data, data.id);
+                return this.insertActivityQualities(data, data.id);
             })
             .then(() => {
                 return this.deleteAirportsOfRegion(data.id);
@@ -234,14 +244,14 @@ module.exports = class {
                 'regions.max_zoom_level = ?',
                 [data.unique_name, data.name, parseInt(data.cost_per_day), data.parent_id, data.max_zoom_level])
                 .then(success => {
-                    return this.insertFeatureQualities(data, success.insertId)
+                    return this.insertActivityQualities(data, success.insertId)
                         .then(() => {
                             return this.insertTimeOfTravelQualitiesOfRegion(data, success.insertId);
                         })
                         .then(() => {
                             return this.commit();
                         }, err => {
-                            return this.rollback("error in createRegionWithFeatureQualities. Rolling back. Error: \n" + err);
+                            return this.rollback("error in createRegionWithActivityQualities. Rolling back. Error: \n" + err);
                         });
                 });
         });
@@ -250,7 +260,7 @@ module.exports = class {
     deleteRegionWithForeignTables(region_id) {
         return this.beginTransaction()
             .then(() => {
-                return this.deleteFeatureQualitiesOfRegion(region_id)
+                return this.deleteActivityQualitiesOfRegion(region_id)
             })
             .then(() => {
                 return this.deleteAirportsOfRegion(region_id);
@@ -272,8 +282,9 @@ module.exports = class {
             .then(() => {
                 return this.query('INSERT INTO algorithms SET ' +
                     'algorithms.key = ?, ' +
-                    'algorithms.name = ?',
-                    [data.key, data.name])
+                    'algorithms.name = ?, ' +
+                    'algorithms.is_active = ?',
+                    [data.key, data.name, data.is_active])
                     .then(success => {
                         return this.insertAlgorithmVariables(data, success.insertId)
                     })
@@ -288,8 +299,9 @@ module.exports = class {
             .then(() => {
                 return this.query('UPDATE algorithms A ' +
                     'SET A.`key` = ?, ' +
-                    'A.name = ? ' +
-                    'WHERE A.id = ?', [data.key, data.name, data.id]);
+                    'A.name = ?, ' +
+                    'A.is_active = ? ' +
+                    'WHERE A.id = ?', [data.key, data.name, data.is_active, data.id]);
             })
             .then(() => {
                 return this.deleteAgorithmVariables(data.id);
@@ -329,36 +341,56 @@ module.exports = class {
         return this.query('DELETE FROM variables2algorithm WHERE algorithm_id = ?', [algorithm_id]);
     };
 
-    getInterestingRegions(features, regions) {
-        let feature_condition_string = '',
-            feature_tables_string = '',
-            feature_select_string = '',
+    getInterestingRegions(activities, regions) {
+        let activity_condition_string = '',
+            activity_tables_string = '',
+            activity_select_string = '',
             f2r = '';
-        Object.values(features).forEach((feature, i) => {
-            if (feature.value > 0) {
+        Object.values(activities).forEach((activity, i) => {
+            if (activity.value > 0) {
                 f2r = 'f2r' + i;
-                feature_tables_string = feature_tables_string + ', feature2region ' + f2r + ', features f' + i;
-                feature_condition_string = feature_condition_string + ' AND r.id = ' + f2r + '.region_id' +
-                    ' AND f' + i + '.key = ' + this.con.escape(feature.key) +
+                activity_tables_string = activity_tables_string + ', feature2region ' + f2r + ', features f' + i;
+                activity_condition_string = activity_condition_string + ' AND r.id = ' + f2r + '.region_id' +
+                    ' AND f' + i + '.key = ' + this.con.escape(activity.key) +
                     ' AND f' + i + '.id = ' + f2r + '.feature_id' +
                     ' AND ' + f2r + '.quality_spring > 0';
-                feature_select_string = feature_select_string +
-                    ', ' + f2r + '.quality_spring AS ' + this.con.escape(feature.key + '_spring') +
-                    ', ' + f2r + '.quality_summer AS ' + this.con.escape(feature.key + '_summer') +
-                    ', ' + f2r + '.quality_autumn AS ' + this.con.escape(feature.key + '_autumn') +
-                    ', ' + f2r + '.quality_winter AS ' + this.con.escape(feature.key + '_winter');
+                activity_select_string = activity_select_string +
+                    ', ' + f2r + '.quality_spring AS ' + this.con.escape(activity.key + '_spring') +
+                    ', ' + f2r + '.quality_summer AS ' + this.con.escape(activity.key + '_summer') +
+                    ', ' + f2r + '.quality_autumn AS ' + this.con.escape(activity.key + '_autumn') +
+                    ', ' + f2r + '.quality_winter AS ' + this.con.escape(activity.key + '_winter');
             }
         });
 
-        return this.query("SELECT r.id, r.name, r.cost_per_day, r.unique_name, tq.*" + feature_select_string +
-            " FROM regions r, time_of_travel_quality2region tq" + feature_tables_string +
+        return this.query("SELECT r.id, r.name, r.cost_per_day, r.unique_name, tq.*" + activity_select_string +
+            " FROM regions r, time_of_travel_quality2region tq" + activity_tables_string +
             " WHERE r.id = tq.region_id" +
-            " AND r.unique_name IN (?)" + feature_condition_string, [regions]);
+            " AND r.unique_name IN (?)" + activity_condition_string, [regions]);
     }
     ;
 
     createOrUpdateFeedbackQuestions(data) {
+        if (data.questions.length === 0) {
+            return this.beginTransaction()
+                .then(() => {
+                    return this.query("DELETE FROM result2feedback_question");
+                })
+                .then(() => {
+                    return this.query("DELETE FROM feedback_questions");
+                })
+                .then(() => {
+                    return this.commit();
+                });
+        }
         return this.beginTransaction()
+            .then(() => {
+                return this.query("DELETE FROM result2feedback_question " +
+                    " WHERE feedback_question_id NOT IN (?)", [data.questions])
+            })
+            .then(() => {
+                return this.query("DELETE FROM feedback_questions " +
+                    " WHERE id NOT IN (?)", [data.questions])
+            })
             .then(() => {
                 return this.query("SELECT fq.*" +
                     " FROM feedback_questions fq" +
@@ -394,18 +426,81 @@ module.exports = class {
             .then(() => {
                 return this.commit();
             });
-    }
-    ;
+    };
+
 
     getFeedbackQuestions() {
         return this.query("SELECT * FROM feedback_questions");
-    }
-    ;
+    };
 
     getActiveFeedbackQuestions() {
         return this.query("SELECT * FROM feedback_questions WHERE is_active = 1");
+    };
+
+    getSettings() {
+        return this.query("SELECT * FROM general_settings");
+    };
+    helper$getSetting(settings, key) {
+        let value;
+        console.log("settings", settings);
+        settings.forEach(setting => {
+            if (setting.key === key) {
+                value = setting.value;
+            }
+        });
+        return value;
+    };
+
+    createOrUpdateSettings(data) {
+        if (data.settings.length === 0) {
+            return this.beginTransaction()
+                .then(() => {
+                    return this.query("DELETE FROM general_settings");
+                })
+                .then(() => {
+                    return this.commit();
+                });
+        }
+        return this.beginTransaction()
+            .then(() => {
+                return this.query("DELETE FROM general_settings " +
+                    " WHERE id NOT IN (?)", [data.settings]);
+            })
+            .then(() => {
+                return this.query("SELECT GS.*" +
+                    " FROM general_settings GS" +
+                    " WHERE GS.id IN (?)", [data.settings]);
+            })
+            .then(settings_in_db => {
+                let promise_array = [];
+                settings_in_db.forEach(setting => {
+                    promise_array.push(this.query('UPDATE general_settings GS ' +
+                        'SET GS.key = ?, GS.value = ? ' +
+                        'WHERE GS.id = ?', [
+                        data['key_' + setting.id],
+                        data['value_' + setting.id],
+                        setting.id]));
+                    data.settings.splice(data.settings.indexOf(setting.id), 1);
+                });
+                // wait for all updates to finish
+                return Promise.all(promise_array);
+            })
+            .then(() => {
+                let insert_array = [];
+                data.settings.forEach(setting => {
+                    insert_array.push([
+                        data['key_' + setting],
+                        data['value_' + setting]
+                    ]);
+                });
+                if (insert_array.length) {
+                    return this.query("INSERT INTO general_settings (`key`, `value`) VALUES ?", [insert_array]);
+                }
+            })
+            .then(() => {
+                return this.commit();
+            });
     }
-    ;
 
     createUser() {
         return this.query("INSERT INTO users (id) VALUES (NULL);")
