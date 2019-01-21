@@ -7,7 +7,7 @@ const Region = require('./Region');
 const Constants = require('../data/Constants');
 
 module.exports = class {
-    constructor(regions, budget, days, start, origin) {
+    constructor(regions, budget, days, start, algorithm_id, origin) {
         this.regions = [];
         this.days = days;
         start = start.split('/');
@@ -19,6 +19,7 @@ module.exports = class {
         console.log("days:", this.days);
         this.travel_months = this._calculateTravelMonths();
         this.origin = origin;
+        this.algorithm_id = algorithm_id;
 
         regions.forEach(element => {
             let region = new Region(element, this.travel_months, days);
@@ -34,6 +35,10 @@ module.exports = class {
             db.close();
             return result;
         });
+    }
+
+    getAlgorithmId() {
+        return this.algorithm_id;
     }
 
     fillAirports() {

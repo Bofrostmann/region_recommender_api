@@ -11,8 +11,8 @@ const Connection = require('../data/DataBase');
 
 
 module.exports = class extends Recommender {
-    constructor(regions, budget, days, start, origin) {
-        super(regions, budget, days, start, origin);
+    constructor(regions, budget, days, start, algorithm_id, origin) {
+        super(regions, budget, days, start, algorithm_id, origin);
         this.remaining_api_calls = 10;
     }
 

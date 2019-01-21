@@ -4,8 +4,8 @@
 
 const Recommender = require('./Recommender');
 module.exports = class extends Recommender {
-    constructor(regions, budget, days, start) {
-        super(regions, budget, days, start);
+    constructor(regions, budget, days, start, algorithm_id) {
+        super(regions, budget, days, start, algorithm_id);
     }
 
     applyRecommender() {
