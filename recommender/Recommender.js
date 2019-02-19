@@ -10,13 +10,9 @@ module.exports = class {
     constructor(regions, budget, days, start, algorithm_id, origin) {
         this.regions = [];
         this.days = days;
-        start = start.split('/');
-        this.start_date = new Date(start[2], parseInt(start[1], 10) - 1, start[0]);
+        this.start_date = start;
         this.end_date = new Date(this.start_date);
         this.end_date.setDate(this.start_date.getDate() + parseInt(this.days));
-        console.log("start:", this.start_date);
-        console.log("end:", this.end_date);
-        console.log("days:", this.days);
         this.travel_months = this._calculateTravelMonths();
         this.origin = origin;
         this.algorithm_id = algorithm_id;
@@ -54,7 +50,8 @@ module.exports = class {
         return Promise.all(promises).then(() => {
             db.close();
         });
-    };
+    }
+    ;
 
     getRegions() {
         return this.regions;

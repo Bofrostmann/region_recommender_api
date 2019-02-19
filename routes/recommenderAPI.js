@@ -112,6 +112,31 @@ module.exports = function (app, authenticator) {
                 user_id = "";
             }
         }
+
+        let year,
+            month,
+            day,
+            start_array;
+        if (req.body.start.includes('.')) {
+            //. means, that we start w day
+            start_array = req.body.start.split('.');
+            year = parseInt(start_array[2], 10);
+            day = parseInt(start_array[0], 10);
+
+        } else {
+            // - and / mean, that we start w year
+            if (req.body.start.includes('/')) {
+                start_array = req.body.start.split('/');
+            } else if (req.body.start.includes('-')) {
+                start_array = req.body.start.split('-');
+            }
+            year = parseInt(start_array[0], 10);
+            day = parseInt(start_array[2], 10);
+        }
+        month = parseInt(start_array[1], 10) - 1;
+        req.body.start = new Date(year, month, day);
+
+
         const db = new Database();
         let number_of_recommendations;
         db.getSettings()
@@ -139,28 +164,32 @@ module.exports = function (app, authenticator) {
                             recommender;
                         const active_algoritmhs = algorithm_settings.algorithms.filter(algo => algo.is_active );
                         const algorithm = active_algoritmhs[Math.floor(Math.random() * active_algoritmhs.length)];
-                        console.log("algorithm.key", algorithm.key);
-                        if (algorithm.is_active) {
-                            switch (algorithm.key) {
-                                case 'cosine_recommender':
-                                    recommender = new CosineRecommender(algorithm_settings.regions, req.body.budget, req.body.days, req.body.start, algorithm.id, req.body.origin);
-                                    recommender_promise = recommender.fillAirports()
-                                        .then(() => {
-                                            return recommender.applyRecommender(req.body.activities);
-                                        })
-                                        .then(() => {
-                                            return recommender;
-                                        });
-                                    break;
-                                case 'legacy_recommender':
-                                    recommender = new LegacyRecommender(algorithm_settings.regions, req.body.budget, req.body.days, req.body.start, algorithm.id);
-                                    recommender.applyRecommender();
-                                    recommender_promise = Promise.resolve(recommender);
-                            }
+                        const algorithm_variables = algorithm.variables;
+                        switch (algorithm.key) {
+                            case 'cosine_recommender':
+                                recommender = new CosineRecommender(
+                                    algorithm_settings.regions,
+                                    req.body.budget,
+                                    req.body.days,
+                                    req.body.start,
+                                    algorithm.id,
+                                    req.body.origin,
+                                    db.helper$getSetting(algorithm_variables, 'skyscanner_api_calls'));
+                                recommender_promise = recommender.fillAirports()
+                                    .then(() => {
+                                        return recommender.applyRecommender(req.body.activities);
+                                    })
+                                    .then(() => {
+                                        return recommender;
+                                    });
+                                break;
+                            case 'legacy_recommender':
+                                recommender = new LegacyRecommender(algorithm_settings.regions, req.body.budget, req.body.days, req.body.start, algorithm.id);
+                                recommender.applyRecommender();
+                                recommender_promise = Promise.resolve(recommender);
                         }
                         recommender_promise
                             .then(recommender => {
-
                                 let recommendations_array = [];
                                 for (let i = 0; i < number_of_recommendations && i < recommender.getRegions().length; i++) {
                                     let region = recommender.getRegions()[i];
@@ -204,7 +233,7 @@ module.exports = function (app, authenticator) {
         const db = new Database();
         switch (req.body.key) {
             case 'activity':
-                db.updateActivity(req.body.data.activity_key, req.body.data.label, req.body.data.is_active, req.body.data.id).then(success => {
+                db.updateActivity(req.body.data.activity_key, req.body.data.label, req.body.data.is_active, req.body.data.id).then(() => {
                     res.json({success: true});
                 }, err => {
                     res.json({success: false});
@@ -212,7 +241,7 @@ module.exports = function (app, authenticator) {
                 });
                 break;
             case 'region':
-                db.updateRegion(req.body.data).then(success => {
+                db.updateRegion(req.body.data).then(() => {
                     res.json({success: true});
                 }, err => {
                     console.log('error in genericSingleUpdate', req.body, err);
@@ -221,7 +250,7 @@ module.exports = function (app, authenticator) {
                 break;
             case 'feedback':
                 db.createOrUpdateFeedbackQuestions(req.body.data)
-                    .then(success => {
+                    .then(() => {
                         res.json({success: true});
                     }, err => {
                         console.log('error in genericSingleUpdate', req.body, err);
@@ -229,7 +258,7 @@ module.exports = function (app, authenticator) {
                 break;
             case 'settings':
                 db.createOrUpdateSettings(req.body.data)
-                    .then(success => {
+                    .then(() => {
                         res.json({success: true});
                     }, err => {
                         console.log('error in genericSingleUpdate', req.body, err);
@@ -237,7 +266,7 @@ module.exports = function (app, authenticator) {
                 break;
             case 'algorithm':
                 db.updateAlgorithmWithForeignKeyTables(req.body.data)
-                    .then(success => {
+                    .then(() => {
                         res.json({success: true});
                     }, err => {
                         console.log('error in genericSingleUpdate', req.body, err);
@@ -278,7 +307,7 @@ module.exports = function (app, authenticator) {
         const db = new Database();
         switch (req.body.key) {
             case 'activity':
-                db.insertActivity(req.body.data.activity_key, req.body.data.label, req.body.data.is_active).then(success => {
+                db.insertActivity(req.body.data.activity_key, req.body.data.label, req.body.data.is_active).then(() => {
                     res.json({success: true});
                 }, err => {
                     res.json({success: false});
@@ -286,7 +315,7 @@ module.exports = function (app, authenticator) {
                 });
                 break;
             case 'region':
-                db.createRegionWithForeignTables(req.body.data).then(success => {
+                db.createRegionWithForeignTables(req.body.data).then(() => {
                     res.json({success: true});
                 }, err => {
                     console.log('error in genericSingleCreate', req.body, err);
@@ -294,7 +323,7 @@ module.exports = function (app, authenticator) {
                 });
                 break;
             case 'algorithm':
-                db.createAlgorithmWithForeignTables(req.body.data).then(success => {
+                db.createAlgorithmWithForeignTables(req.body.data).then(() => {
                     res.json({success: true});
                 }, err => {
                     console.log('error in genericSingleCreate', req.body, err);
@@ -312,7 +341,7 @@ module.exports = function (app, authenticator) {
         const db = new Database();
         switch (req.body.key) {
             case 'activity':
-                db.deleteActivity(req.body.data.id).then(success => {
+                db.deleteActivity(req.body.data.id).then(() => {
                     res.json({success: true});
                 }, err => {
                     res.json({success: false});
@@ -320,7 +349,7 @@ module.exports = function (app, authenticator) {
                 });
                 break;
             case 'region':
-                db.deleteRegionWithForeignTables(req.body.data.id).then(success => {
+                db.deleteRegionWithForeignTables(req.body.data.id).then(() => {
                     res.json({success: true});
                 }, err => {
                     res.json({success: false});
@@ -328,7 +357,7 @@ module.exports = function (app, authenticator) {
                 });
                 break;
             case 'algorithm':
-                db.deleteAlgorithmWithForeignTables(req.body.data.id).then(success => {
+                db.deleteAlgorithmWithForeignTables(req.body.data.id).then(() => {
                     res.json({success: true});
                 }, err => {
                     res.json({success: false});
@@ -354,7 +383,7 @@ module.exports = function (app, authenticator) {
 
     router.post('/submitFeedbackAnswers', (req, res) => {
         const db = new Database();
-        db.storeFeebackQuestionAnswers(req.body.data).then(result => {
+        db.storeFeebackQuestionAnswers(req.body.data).then(() => {
                 res.json({success: true});
                 db.close();
             },

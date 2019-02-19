@@ -7,13 +7,12 @@
 const Recommender = require('./Recommender');
 const CosineSimilarity = require('compute-cosine-similarity');
 const SkyscannerAPI = require('../data/SkyscannerAPI');
-const Connection = require('../data/DataBase');
 
 
 module.exports = class extends Recommender {
-    constructor(regions, budget, days, start, algorithm_id, origin) {
+    constructor(regions, budget, days, start, algorithm_id, origin, api_calls) {
         super(regions, budget, days, start, algorithm_id, origin);
-        this.remaining_api_calls = 10;
+        this.remaining_api_calls = api_calls;
     }
 
     applyRecommender(user_features) {
