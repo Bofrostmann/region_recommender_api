@@ -44,7 +44,6 @@ module.exports = class {
 
     commit() {
         return new Promise((resolve, reject) => {
-            console.log("commiting");
             this.con.commit(err => {
                 if (err)
                     return reject(err);
@@ -55,7 +54,7 @@ module.exports = class {
 
     rollback(error) {
         return new Promise((resolve, reject) => {
-            this.con.rollback(err => {
+            this.con.rollback(() => {
                 return reject(error);
             });
         });
@@ -63,16 +62,14 @@ module.exports = class {
 
     query(sql, args) {
         return new Promise((resolve, reject) => {
-            const start_time = new Date().getTime();
             this.con.query(sql, args, function (err, rows) {
                 if (err) {
-                    console.log('this.sql', this.sql);
                     return reject(err);
-                } else {
-                    if (typeof rows.affectedRows !== "undefined") {
-                        console.log('query took ' + (new Date().getTime() - start_time) + 'ms');
-                        console.log('affected Rows: ' + rows.affectedRows);
-                    }
+                } else if (typeof rows.affectedRows !== "undefined") {
+                    /*
+                    console.log('query took ' + (new Date().getTime() - start_time) + 'ms');
+                    console.log('affected Rows: ' + rows.affectedRows);
+                    */
                 }
                 resolve(rows);
             });
@@ -108,7 +105,18 @@ module.exports = class {
     };
 
     getAlgorithms() {
-        return this.query("SELECT A.* FROM algorithms A");
+        return this.query("SELECT A.* FROM algorithms A")
+            .then(algorithms => {
+                let promises = [];
+                algorithms.forEach(algo => {
+                    promises.push(this.getVariablesOfAlgorithm(algo.id)
+                        .then(variables => {
+                            algo.variables = variables;
+                        }));
+                });
+                return Promise.all(promises)
+                    .then(() => algorithms);
+            });
     };
 
     getVariablesOfAlgorithm(algorithm_id) {
@@ -440,9 +448,9 @@ module.exports = class {
     getSettings() {
         return this.query("SELECT * FROM general_settings");
     };
+
     helper$getSetting(settings, key) {
-        let value;
-        console.log("settings", settings);
+        let value = '';
         settings.forEach(setting => {
             if (setting.key === key) {
                 value = setting.value;
@@ -527,9 +535,7 @@ module.exports = class {
     }
 
     logQueryAndResults(query_data, recommended_region_data, user_id) {
-        const regions = JSON.stringify(query_data.regions),
-            start_array = query_data.start.split('/'),
-            start = new Date(start_array[2], parseInt(start_array[1], 10) - 1, start_array[0]);
+        const regions = JSON.stringify(query_data.regions);
         return this.query("INSERT INTO queries SET " +
             "queries.regions = ?, " +
             "queries.origin = ?, " +
@@ -537,7 +543,7 @@ module.exports = class {
             "queries.budget = ?, " +
             "queries.days = ?, " +
             "queries.user_id = ?",
-            [regions, query_data.origin, start, query_data.budget, query_data.days, user_id])
+            [regions, query_data.origin, query_data.start, query_data.budget, query_data.days, user_id])
             .then(result_query => {
                 let promises = [];
                 recommended_region_data.forEach(region => {
