@@ -29,8 +29,10 @@ module.exports = function (app, authenticator) {
             },
             error => {
                 console.log("error!", error);
+            })
+            .then(() => {
+                db.close();
             });
-        db.close();
     });
 
     router.get('/allActivities', authenticator.authenticate(), (req, res) => {
@@ -44,8 +46,10 @@ module.exports = function (app, authenticator) {
             },
             error => {
                 console.log("error!", error);
+            })
+            .then(() => {
+                db.close();
             });
-        db.close();
     });
 
 
@@ -60,8 +64,10 @@ module.exports = function (app, authenticator) {
             },
             error => {
                 console.log("error!", error);
+            })
+            .then(() => {
+                db.close();
             });
-        db.close();
     });
     router.get('/algorithms', (req, res) => {
         const db = new Database();
@@ -74,8 +80,10 @@ module.exports = function (app, authenticator) {
             },
             error => {
                 console.log("error!", error);
+            })
+            .then(() => {
+                db.close();
             });
-        db.close();
     });
 
     router.post('/getVariablesOfAlgorithm', authenticator.authenticate(), (req, res) => {
@@ -85,8 +93,10 @@ module.exports = function (app, authenticator) {
             },
             error => {
                 console.log("error!", error);
+            })
+            .then(() => {
+                db.close();
             });
-        db.close();
     });
 
     router.post('/activitiesOfRegion', authenticator.authenticate(), (req, res) => {
@@ -96,8 +106,10 @@ module.exports = function (app, authenticator) {
             },
             error => {
                 console.log("error!", error);
+            })
+            .then(() => {
+                db.close();
             });
-        db.close();
     });
 
     router.post('/recommendations', (req, res) => {
@@ -162,7 +174,7 @@ module.exports = function (app, authenticator) {
                     .then(algorithm_settings => {
                         let recommender_promise,
                             recommender;
-                        const active_algoritmhs = algorithm_settings.algorithms.filter(algo => algo.is_active );
+                        const active_algoritmhs = algorithm_settings.algorithms.filter(algo => algo.is_active);
                         const algorithm = active_algoritmhs[Math.floor(Math.random() * active_algoritmhs.length)];
                         const algorithm_variables = algorithm.variables;
                         switch (algorithm.key) {
@@ -174,7 +186,7 @@ module.exports = function (app, authenticator) {
                                     req.body.start,
                                     algorithm.id,
                                     req.body.origin,
-                                    db.helper$getSetting(algorithm_variables, 'skyscanner_api_calls'));
+                                    db.helper$getSetting(algorithm_variables, 'max_skyscanner_api_calls'));
                                 recommender_promise = recommender.fillAirports()
                                     .then(() => {
                                         return recommender.applyRecommender(req.body.activities);
@@ -221,19 +233,21 @@ module.exports = function (app, authenticator) {
 
                             })
                             .then(() => {
-                                db.commit();
+                                return db.commit();
+                            })
+                            .then(() => {
+                                db.close();
                             });
-
                     });
-
             });
     });
 
     router.post('/genericSingleUpdate', authenticator.authenticate(), (req, res) => {
         const db = new Database();
+        let promise;
         switch (req.body.key) {
             case 'activity':
-                db.updateActivity(req.body.data.activity_key, req.body.data.label, req.body.data.is_active, req.body.data.id).then(() => {
+                promise = db.updateActivity(req.body.data.activity_key, req.body.data.label, req.body.data.is_active, req.body.data.id).then(() => {
                     res.json({success: true});
                 }, err => {
                     res.json({success: false});
@@ -241,7 +255,7 @@ module.exports = function (app, authenticator) {
                 });
                 break;
             case 'region':
-                db.updateRegion(req.body.data).then(() => {
+                promise = db.updateRegion(req.body.data).then(() => {
                     res.json({success: true});
                 }, err => {
                     console.log('error in genericSingleUpdate', req.body, err);
@@ -249,7 +263,7 @@ module.exports = function (app, authenticator) {
 
                 break;
             case 'feedback':
-                db.createOrUpdateFeedbackQuestions(req.body.data)
+                promise = db.createOrUpdateFeedbackQuestions(req.body.data)
                     .then(() => {
                         res.json({success: true});
                     }, err => {
@@ -257,7 +271,7 @@ module.exports = function (app, authenticator) {
                     });
                 break;
             case 'settings':
-                db.createOrUpdateSettings(req.body.data)
+                promise = db.createOrUpdateSettings(req.body.data)
                     .then(() => {
                         res.json({success: true});
                     }, err => {
@@ -265,7 +279,7 @@ module.exports = function (app, authenticator) {
                     });
                 break;
             case 'algorithm':
-                db.updateAlgorithmWithForeignKeyTables(req.body.data)
+                promise = db.updateAlgorithmWithForeignKeyTables(req.body.data)
                     .then(() => {
                         res.json({success: true});
                     }, err => {
@@ -276,6 +290,9 @@ module.exports = function (app, authenticator) {
                 console.log('error in genericSingleUpdate: Invalid activity_key', req.body.key);
                 res.json({success: false});
         }
+        promise.then(() => {
+            db.close();
+        });
     });
 
 
@@ -286,8 +303,10 @@ module.exports = function (app, authenticator) {
             },
             error => {
                 console.log("error!", error);
+            })
+            .then(() => {
+                db.close();
             });
-        db.close();
     });
 
 
@@ -298,16 +317,19 @@ module.exports = function (app, authenticator) {
             },
             error => {
                 console.log("error!", error);
+            })
+            .then(() => {
+                db.close();
             });
-        db.close();
     });
 
 
     router.post('/genericSingleCreate', authenticator.authenticate(), (req, res) => {
         const db = new Database();
+        let promise;
         switch (req.body.key) {
             case 'activity':
-                db.insertActivity(req.body.data.activity_key, req.body.data.label, req.body.data.is_active).then(() => {
+                promise = db.insertActivity(req.body.data.activity_key, req.body.data.label, req.body.data.is_active).then(() => {
                     res.json({success: true});
                 }, err => {
                     res.json({success: false});
@@ -315,7 +337,7 @@ module.exports = function (app, authenticator) {
                 });
                 break;
             case 'region':
-                db.createRegionWithForeignTables(req.body.data).then(() => {
+                promise = db.createRegionWithForeignTables(req.body.data).then(() => {
                     res.json({success: true});
                 }, err => {
                     console.log('error in genericSingleCreate', req.body, err);
@@ -323,7 +345,7 @@ module.exports = function (app, authenticator) {
                 });
                 break;
             case 'algorithm':
-                db.createAlgorithmWithForeignTables(req.body.data).then(() => {
+                promise = db.createAlgorithmWithForeignTables(req.body.data).then(() => {
                     res.json({success: true});
                 }, err => {
                     console.log('error in genericSingleCreate', req.body, err);
@@ -334,14 +356,18 @@ module.exports = function (app, authenticator) {
                 console.log('error in genericSingleCreate: Invalid activity_key', req.body.key);
                 res.json({success: false});
         }
+        promise.then(() => {
+            db.close();
+        });
     });
 
 
     router.post('/genericSingleDelete', authenticator.authenticate(), (req, res) => {
         const db = new Database();
+        let promise;
         switch (req.body.key) {
             case 'activity':
-                db.deleteActivity(req.body.data.id).then(() => {
+                promise = db.deleteActivity(req.body.data.id).then(() => {
                     res.json({success: true});
                 }, err => {
                     res.json({success: false});
@@ -349,7 +375,7 @@ module.exports = function (app, authenticator) {
                 });
                 break;
             case 'region':
-                db.deleteRegionWithForeignTables(req.body.data.id).then(() => {
+                promise = db.deleteRegionWithForeignTables(req.body.data.id).then(() => {
                     res.json({success: true});
                 }, err => {
                     res.json({success: false});
@@ -357,7 +383,7 @@ module.exports = function (app, authenticator) {
                 });
                 break;
             case 'algorithm':
-                db.deleteAlgorithmWithForeignTables(req.body.data.id).then(() => {
+                promise = db.deleteAlgorithmWithForeignTables(req.body.data.id).then(() => {
                     res.json({success: true});
                 }, err => {
                     res.json({success: false});
@@ -368,6 +394,9 @@ module.exports = function (app, authenticator) {
                 console.log('error in genericSingleDelete: Invalid activity_key', req.body.key);
                 res.json({success: false});
         }
+        promise.then(() => {
+            db.close();
+        });
     });
 
     router.get('/getFeedbackQuestions', (req, res) => {
@@ -377,18 +406,22 @@ module.exports = function (app, authenticator) {
             },
             error => {
                 console.log("error in getFeedbackQuestions!", error);
+            })
+            .then(() => {
+                db.close();
             });
-        db.close();
     });
 
     router.post('/submitFeedbackAnswers', (req, res) => {
         const db = new Database();
         db.storeFeebackQuestionAnswers(req.body.data).then(() => {
                 res.json({success: true});
-                db.close();
             },
             error => {
                 console.log("error in getFeedbackQuestions!", error);
+            })
+            .then(() => {
+                db.close();
             });
     });
 
@@ -399,8 +432,10 @@ module.exports = function (app, authenticator) {
             },
             error => {
                 console.log("error in getActiveFeedbackQuestions!", error);
+            })
+            .then(() => {
+                db.close();
             });
-        db.close();
     });
 
 
@@ -411,8 +446,10 @@ module.exports = function (app, authenticator) {
             },
             error => {
                 console.log("error in get settings!", error);
+            })
+            .then(() => {
+                db.close();
             });
-        db.close();
     });
 
     router.get('/runScript', (req, res) => {

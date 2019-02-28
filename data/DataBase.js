@@ -30,7 +30,7 @@ module.exports = class {
                 resolve();
             });
         });
-    }
+    };
 
     close() {
         return new Promise((resolve, reject) => {
@@ -107,16 +107,18 @@ module.exports = class {
     getAlgorithms() {
         return this.query("SELECT A.* FROM algorithms A")
             .then(algorithms => {
-                let promises = [];
-                algorithms.forEach(algo => {
-                    promises.push(this.getVariablesOfAlgorithm(algo.id)
-                        .then(variables => {
-                            algo.variables = variables;
-                        }));
-                });
-                return Promise.all(promises)
-                    .then(() => algorithms);
+                return this.getAllAlgorithmVariables()
+                    .then(variables => {
+                        algorithms.forEach(algo => {
+                            algo.variables = variables.filter(variable => variable.algorithm_id = algo.id);
+                        });
+                        return algorithms;
+                    });
             });
+    };
+
+    getAllAlgorithmVariables() {
+        return this.query("SELECT V2A.* FROM variables2algorithm V2A");
     };
 
     getVariablesOfAlgorithm(algorithm_id) {
