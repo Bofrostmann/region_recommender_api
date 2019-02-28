@@ -48,17 +48,18 @@ module.exports = class extends Recommender {
         let promises = [];
         const skyscanner = new SkyscannerAPI();
         this.regions.forEach(region => {
-            if (this.remaining_api_calls > 0 && region.getAirports().length) {
+            const airports = region.getAirports();
+            if (this.remaining_api_calls - airports.length >= 0 && region.getAirports().length) {
                 promises.push(skyscanner.getBestRouteForAirports(
                     this.origin,
-                    region.getAirports().map(airport => (airport.iata_code)),
+                    airports.map(airport => (airport.iata_code)),
                     this.start_date,
                     this.end_date).then(trip => {
                     if (typeof trip !== "undefined") {
                         region.setCheapestTrip(trip);
                     }
                 }));
-                this.remaining_api_calls--;
+                this.remaining_api_calls-=airports.length;
             }
         });
 

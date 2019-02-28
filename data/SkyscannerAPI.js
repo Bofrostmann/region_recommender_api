@@ -30,9 +30,6 @@ module.exports = class SkyscannerAPI {
         let promises = [];
         destinations.forEach(destination => {
             promises.push(new Promise((resolve, reject) => {
-                const start_time = new Date().getTime();
-
-                //const url = "https://skyscanner-skyscanner-flight-search-v1.p.mashape.com/apiservices/browseroutes/v1.0/DE/EUR/en-US"
                 const url = "https://skyscanner-skyscanner-flight-search-mdcinnovations-v1.p.rapidapi.com/apiservices/browseroutes/v1.0/DE/EUR/en-US"
                     + "/" + origin
                     + "/" + destination
@@ -40,11 +37,7 @@ module.exports = class SkyscannerAPI {
                     + "/" + end;
                 return unirest.get(url)
                     .header("X-RapidAPI-Key", "KWix2GSybMmsh1999juAzdar2uUpp128qnTjsngHALJPEoSc2K")
-                        //new API key seems to be better!
-                //    .header("X-Mashape-Key", "KAbHwsWfUJmshMjtRryquDFNBaosp1sXW21jsn5jZHEOvf640z")
-                //    .header("X-Mashape-Host", "skyscanner-skyscanner-flight-search-v1.p.mashape.com")
                     .end(function (result) {
-                        console.log('skyscanner api took ' + (new Date().getTime() - start_time) + 'ms');
                         if (result.clientError) {
                             console.log('request: ', url);
                             console.log('error: ', result.body);
