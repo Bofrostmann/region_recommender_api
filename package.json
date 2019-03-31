@@ -19,8 +19,7 @@
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
     "promise-mysql": "^3.3.1",
-    "rapidapi-connect": "0.0.6",
-    "unirest": "^0.5.1"
+    "unirest": "^0.6.0"
   },
   "devDependencies": {
     "@types/express": "^4.16.0"
